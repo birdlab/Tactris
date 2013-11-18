@@ -442,6 +442,7 @@ function shiftx(index){
 }
 
 function initPole(){
+	console.log('/start git here )))');
     for (j=0; j<size; j++){
     	var line= new Array();
     	pole.push(line);
