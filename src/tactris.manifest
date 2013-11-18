@@ -1,0 +1,14 @@
+CACHE MANIFEST
+
+# Version 3
+
+index.html
+style.css
+game.js
+kinetic-v3.10.3.js
+jquery-1.6.4.min.js
+sprite.png
+
+# offline icons
+icon.png
+startup.png

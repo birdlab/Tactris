@@ -1,0 +1,29 @@
+html, body { 
+	width:100%;
+	background-color: #333333;
+	margin: 0;
+	padding: 0;
+	color: #e5e5e5;
+}
+#tactris{
+
+	width: 100%;	
+
+} 
+
+#scorediv{
+	position:absolute;
+	right: inherit;
+	font-family: 'Quantico', sans-serif;
+	font-size: 34px;
+	display: block;
+}      
+#gamecontent{
+	position: absolute;
+	cursor:pointer;
+	
+}
+#forcenter{
+	width: 640px;
+    margin: 0px auto;	
+}
