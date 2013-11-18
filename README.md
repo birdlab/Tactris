@@ -1,4 +1,4 @@
 TactrisHTML5
 ============
 
-tarctis on canvas
+tactris on canvas
