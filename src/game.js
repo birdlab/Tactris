@@ -1,62 +1,300 @@
-var ver = "0.2.0.0";
-var pole = new Array();
-var query = new Array();
-var curents = new Array(null, null);
-var size = 10;
-var imageObj = new Image();
-var stage = null;
-var layer = null;
-var nextlayers = Array(null, null);
-var mousedown = false;
-var checkindex = -1;
-var refsbinded = false;
-var score = 0;
-var scorediv = null
-var socket = null;
+(function() {
+    var refs = [
+        [{
+            x: 0,
+            y: 0
+        }, {
+            x: 0,
+            y: 1
+        }, {
+            x: 0,
+            y: 2
+        }, {
+            x: 0,
+            y: 3
+        }],
+        [{
+            x: 0,
+            y: 0
+        }, {
+            x: 1,
+            y: 0
+        }, {
+            x: 2,
+            y: 0
+        }, {
+            x: 3,
+            y: 0
+        }],
+        [{
+            x: 0,
+            y: 1
+        }, {
+            x: 1,
+            y: 1
+        }, {
+            x: 1,
+            y: 0
+        }, {
+            x: 0,
+            y: 0
+        }],
+        [{
+            x: 0,
+            y: 1
+        }, {
+            x: 1,
+            y: 1
+        }, {
+            x: 1,
+            y: 0
+        }, {
+            x: 2,
+            y: 0
+        }],
+        [{
+            x: 2,
+            y: 1
+        }, {
+            x: 1,
+            y: 1
+        }, {
+            x: 1,
+            y: 0
+        }, {
+            x: 0,
+            y: 0
+        }],
+        [{
+            x: 0,
+            y: 2
+        }, {
+            x: 0,
+            y: 1
+        }, {
+            x: 1,
+            y: 1
+        }, {
+            x: 1,
+            y: 0
+        }],
+        [{
+            x: 1,
+            y: 2
+        }, {
+            x: 0,
+            y: 1
+        }, {
+            x: 1,
+            y: 1
+        }, {
+            x: 0,
+            y: 0
+        }],
+        [{
+            x: 2,
+            y: 1
+        }, {
+            x: 1,
+            y: 1
+        }, {
+            x: 0,
+            y: 1
+        }, {
+            x: 0,
+            y: 0
+        }],
+        [{
+            x: 0,
+            y: 2
+        }, {
+            x: 0,
+            y: 1
+        }, {
+            x: 0,
+            y: 0
+        }, {
+            x: 1,
+            y: 0
+        }],
+        [{
+            x: 1,
+            y: 2
+        }, {
+            x: 0,
+            y: 2
+        }, {
+            x: 0,
+            y: 1
+        }, {
+            x: 0,
+            y: 0
+        }],
+        [{
+            x: 0,
+            y: 2
+        }, {
+            x: 1,
+            y: 2
+        }, {
+            x: 1,
+            y: 1
+        }, {
+            x: 1,
+            y: 0
+        }],
+        [{
+            x: 2,
+            y: 0
+        }, {
+            x: 1,
+            y: 0
+        }, {
+            x: 0,
+            y: 0
+        }, {
+            x: 0,
+            y: 1
+        }],
+        [{
+            x: 1,
+            y: 2
+        }, {
+            x: 1,
+            y: 1
+        }, {
+            x: 1,
+            y: 0
+        }, {
+            x: 0,
+            y: 0
+        }],
+        [{
+            x: 2,
+            y: 1
+        }, {
+            x: 2,
+            y: 0
+        }, {
+            x: 1,
+            y: 0
+        }, {
+            x: 0,
+            y: 0
+        }],
+        [{
+            x: 2,
+            y: 0
+        }, {
+            x: 2,
+            y: 1
+        }, {
+            x: 1,
+            y: 1
+        }, {
+            x: 0,
+            y: 1
+        }],
+        [{
+            x: 1,
+            y: 0
+        }, {
+            x: 2,
+            y: 1
+        }, {
+            x: 1,
+            y: 1
+        }, {
+            x: 0,
+            y: 1
+        }],
+        [{
+            x: 1,
+            y: 1
+        }, {
+            x: 0,
+            y: 0
+        }, {
+            x: 1,
+            y: 0
+        }, {
+            x: 2,
+            y: 0
+        }],
+        [{
+            x: 1,
+            y: 1
+        }, {
+            x: 0,
+            y: 2
+        }, {
+            x: 0,
+            y: 1
+        }, {
+            x: 0,
+            y: 0
+        }],
+        [{
+            x: 0,
+            y: 1
+        }, {
+            x: 1,
+            y: 2
+        }, {
+            x: 1,
+            y: 1
+        }, {
+            x: 1,
+            y: 0
+        }]
+    ];
+    var animations = {
+        debug: [{
+            x: 32,
+            y: 0,
+            width: 63,
+            height: 63
+        }],
+        idle: [{
+            x: 0,
+            y: 0,
+            width: 63,
+            height: 63
+        }],
+        stay: [{
+            x: 63,
+            y: 0,
+            width: 63,
+            height: 63
+        }],
+        picked: [{
+            x: 126,
+            y: 0,
+            width: 63,
+            height: 63
+        }]
+    };
+    var ver = "0.2.0.0";
+    var pole = new Array();
+    var query = new Array();
+    var curents = new Array(null, null);
+    var size = 10;
+    var imageObj = new Image();
+    var stage = null;
+    var layer = null;
+    var nextlayers = Array(null, null);
+    var mousedown = false;
+    var checkindex = -1;
+    var refsbinded = false;
+    var score = 0;
+    var scorediv = null
+    var socket = null;
+    $('#gamecontent')
 
-window.onresize = function() {
-    var winW = 630,
-        winH = 460;
-    if (document.body && document.body.offsetWidth) {
-        winW = document.body.offsetWidth;
-        winH = document.body.offsetHeight;
-    }
-    if (document.compatMode == 'CSS1Compat' && document.documentElement && document.documentElement.offsetWidth) {
-        winW = document.documentElement.offsetWidth;
-        winH = document.documentElement.offsetHeight;
-    }
-    if (window.innerWidth && window.innerHeight) {
-        winW = window.innerWidth;
-        winH = window.innerHeight;
-    }
-}
+})();
 
-var animations = {
-    debug: [{
-        x: 32,
-        y: 0,
-        width: 63,
-        height: 63
-    }],
-    idle: [{
-        x: 0,
-        y: 0,
-        width: 63,
-        height: 63
-    }],
-    stay: [{
-        x: 63,
-        y: 0,
-        width: 63,
-        height: 63
-    }],
-    picked: [{
-        x: 126,
-        y: 0,
-        width: 63,
-        height: 63
-    }]
-};
+
+
 
 $(document).ready(function() {
     stage = new Kinetic.Stage({
@@ -81,15 +319,6 @@ $(document).ready(function() {
     }
     imageObj.src = "sprite.png";
 });
-
-
-function pf(r, tx, ty) {
-    var point = {
-        x: tx,
-        y: ty
-    };
-    r.push(point);
-}
 
 function isend() {
     var fig = null;
@@ -154,7 +383,7 @@ function setnext(index) {
 function pick(block) {
     if (block.getAnimation() == "idle") {
         block.setAnimation('picked');
-        query.push(block);
+        userquery.push(block);
 
     }
     checkFigure(false);
@@ -187,14 +416,14 @@ function ok(sx, sy) {
     for (a = 0; a < curents.length; a++) {
         var curent = curents[a];
         var counter = 0;
-        for (b = 0; b < query.length; b++) {
+        for (b = 0; b < userquery.length; b++) {
             for (d = 0; d < curent.length; d++) {
-                if (((query[b].posx - sx) == curent[d].x) && ((query[b].posy - sy) == curent[d].y)) {
+                if (((userquery[b].posx - sx) == curent[d].x) && ((userquery[b].posy - sy) == curent[d].y)) {
                     counter++;
                 }
             }
         }
-        if (counter == query.length) {
+        if (counter == userquery.length) {
             checkindex = a;
             return true;
         }
@@ -213,11 +442,11 @@ function redraw() {
 }
 
 function checkFigure(fin) {
-    if (query.length > 3) {
+    if (userquery.length > 3) {
         var lowx = size;
         var lowy = size;
-        for (a = 0; a < query.length; a++) {
-            var block = query[a];
+        for (a = 0; a < userquery.length; a++) {
+            var block = userquery[a];
             if (block.posx < lowx) {
                 lowx = block.posx;
             }
@@ -226,15 +455,15 @@ function checkFigure(fin) {
             }
         }
         if (ok(lowx, lowy) || ok(lowx - 1, lowy) || ok(lowx, lowy - 1) || ok(lowx - 2, lowy) || ok(lowx, lowy - 2)) {
-            if (fin && query.length == 4) {
+            if (fin && userquery.length == 4) {
                 savestate();
                 score += 4;
                 scorediv.html(score);
                 instal();
             }
         } else {
-            if (query.length > 3) {
-                setoff(query.shift());
+            if (userquery.length > 3) {
+                setoff(userquery.shift());
             }
         }
     }
@@ -253,10 +482,10 @@ function uncorrectF() {
 }
 
 function instal() {
-    for (var f = 0; f < query.length; f++) {
-        place(query[f]);
+    for (var f = 0; f < userquery.length; f++) {
+        place(userquery[f]);
     }
-    query = new Array();
+    userquery = new Array();
     checklines();
     setnext(checkindex);
     if (isend()) {

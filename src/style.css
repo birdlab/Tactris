@@ -1,29 +1,40 @@
-html, body { 
-	width:100%;
-	background-color: #333333;
-	margin: 0;
-	padding: 0;
-	color: #e5e5e5;
+html, body {
+    width: 100%;
+    background-color: #333333;
+    margin: 0;
+    padding: 0;
+    color: #e5e5e5;
 }
-#tactris{
 
-	width: 100%;	
-
-} 
-
-#scorediv{
-	position:absolute;
-	right: inherit;
-	font-family: 'Quantico', sans-serif;
-	font-size: 34px;
-	display: block;
-}      
-#gamecontent{
-	position: absolute;
-	cursor:pointer;
-	
+#tactris {
+    width: 100%;
 }
-#forcenter{
-	width: 640px;
-    margin: 0px auto;	
+
+#gamecontent {
+    position: absolute;
+    cursor: pointer;
+
+}
+
+#forcenter {
+    width: 640px;
+    margin: 0px auto;
+}
+
+.tactris-block {
+    position: absolute;
+    width: 49px;
+    height: 49px;
+    padding: 1px;
+    background-color: #000000;
+/*    background-image: url(sprite.png); *//* Путь к фоновому рисунку *//*
+    background-position: 0, 0; *//* Положение фона *//*
+    background-repeat: no-repeat;;*/
+}
+
+.tactris-block.active {
+    background-color: #aaaaaa;
+}
+.tactris-block.placed {
+    background-color: #ffffff;
 }
