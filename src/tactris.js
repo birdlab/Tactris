@@ -364,8 +364,8 @@ $(document).ready(function() {
                 }
                 e.stopPropagation();
             });
+            //change visual state
             block.go = function(state) {
-
                 block.removeClass('active');
                 block.removeClass('placed');
                 if (state != 'empty') {
@@ -402,7 +402,7 @@ $(document).ready(function() {
                 }
             }
         }
-
+        //check userquery for similarity
         function checkFigure() {
             var ok = function(sx, sy) {
                 for (var a in curents) {
