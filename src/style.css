@@ -25,16 +25,17 @@ html, body {
     position: absolute;
     width: 49px;
     height: 49px;
-    padding: 1px;
+    margin: 1px;
     background-color: #000000;
-/*    background-image: url(sprite.png); *//* Путь к фоновому рисунку *//*
-    background-position: 0, 0; *//* Положение фона *//*
-    background-repeat: no-repeat;;*/
+    /*    background-image: url(sprite.png); *//* Путь к фоновому рисунку *//*
+        background-position: 0, 0; *//* Положение фона *//*
+        background-repeat: no-repeat;;*/
 }
 
 .tactris-block.active {
     background-color: #aaaaaa;
 }
+
 .tactris-block.placed {
     background-color: #ffffff;
 }

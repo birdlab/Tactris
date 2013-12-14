@@ -364,6 +364,18 @@ $(document).ready(function() {
                 }
                 e.stopPropagation();
             });
+            block.mouseenter(function(e) {
+                if (mousedown) {
+                    if (block.logicObject.state != 'placed') {
+                        block.logicObject.setState('active');
+                    }
+                    e.stopPropagation();
+                }
+            });
+            block.mouseup(function(e) {
+                mousedown = false;
+                e.stopPropagation();
+            });
             //change visual state
             block.go = function(state) {
                 block.removeClass('active');
@@ -372,7 +384,9 @@ $(document).ready(function() {
                     block.addClass(state);
                 }
             }
-            block.css({'top': j * block.height() + 1 + 'px', 'left': i * block.width() + 1 + 'px'});
+            var offset = parseInt(block.css('height')) + parseInt(block.css('margin'));
+            console.log(offset);
+            block.css({'top': j * offset + 'px', 'left': i * offset + 'px'});
             return block;
         }
 
@@ -391,8 +405,10 @@ $(document).ready(function() {
                             if (state != this.state) {
                                 this.state = state;
                                 this.div.go(state);
-                                userquery.push(this);
-                                checkFigure();
+                                if (state === 'active') {
+                                    userquery.push(this);
+                                    checkFigure();
+                                }
                             }
 
                         }
@@ -402,7 +418,8 @@ $(document).ready(function() {
                 }
             }
         }
-        //check userquery for similarity
+
+        //check user query for similarity
         function checkFigure() {
             var ok = function(sx, sy) {
                 for (var a in curents) {
@@ -422,11 +439,12 @@ $(document).ready(function() {
                 }
                 return false;
             }
-
-            if (userquery.length > 3) {
+            console.log('before check', userquery.length, userquery);
+            if (userquery.length > 2) {
+                console.log('пора проверять');
                 var lowx = dimensions;
                 var lowy = dimensions;
-                for (a = 0; a < userquery.length; a++) {
+                for (var a in userquery) {
                     var block = userquery[a];
                     if (block.x < lowx) {
                         lowx = block.posx;
@@ -441,7 +459,9 @@ $(document).ready(function() {
                         //  score += 4;
                         //  scorediv.html(score);
                         //  instal();
+
                     }
+                    console.log('угадал');
                 } else {
                     userquery.shift().setState('empty');
                 }
