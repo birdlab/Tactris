@@ -1,4 +1,4 @@
-TactrisHTML5
+Tactris
 ============
 
-tactris on canvas
+Browser tetris-like game.
