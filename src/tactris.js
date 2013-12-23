@@ -388,7 +388,7 @@ $(document).ready(function() {
                 this.logicObject = logicObject;
                 var offset = parseInt(block.css('height')) + parseInt(block.css('margin'));
                 block.css({'top': logicObject.y * offset + 'px', 'left': logicObject.x * offset + 'px'});
-               // block.html(logicObject.x + '-' + logicObject.y);
+                // block.html(logicObject.x + '-' + logicObject.y);
             }
             return block;
         }
@@ -433,6 +433,7 @@ $(document).ready(function() {
             polediv.css({'width': samplesize * dimensions, 'height': samplesize * dimensions});
         }
 
+
         function checkLines() {
             var outlines = [];
             for (var j in pole) {
@@ -457,32 +458,33 @@ $(document).ready(function() {
             for (var out in outlines) {
                 var line = outlines[out];
                 if (line.dir === 'x') {
+
+                    //empty line
                     for (var i in pole[line.line]) {
                         var block = pole[line.line][parseInt(i)];
                         block.setState('empty');
                         block.setPosition(parseInt(i), 9, false);
                     }
-                    pole.push(pole.splice(line.line, 1)[0]);
-                    console.log(pole);
-                    for (var a = line.line; a < dimensions; a++) {
+                    //rearange array
+                    if (line.line > 4) {
+                        pole.push(pole.splice(line.line, 1)[0]);
+                    } else {
+                        pole.unshift(pole.splice(line.line, 1)[0]);
+                    }
+                    for (var a in pole) {
                         for (var i in pole[a]) {
                             var b = parseInt(i);
                             pole[a][b].setPosition(b, a, false);
                         }
                     }
                 } else {
-                    for (var i in pole[line.line]) {
-                        var block = pole[i][line.line];
-                        block.setState('empty');
-                    }
+                    //   for (var i in pole[line.line]) {
+                    //      var block = pole[i][line.line];
+                    //      block.setState('empty');
+                    //  }
                 }
                 score += 10 * outlines.length;
                 viewport.find('#score span').html(score);
-                for (var lines in outlines){
-                    if (outlines[lines].dir==='x'){
-                        outlines[lines].line-=1;
-                    }
-                }
             }
         }
 
@@ -544,6 +546,7 @@ $(document).ready(function() {
             }
         }
 
+        //choise random figure
         function setnext(nextfigure) {
             var getrandom = function() {
                 var holyrandom = Math.round(Math.random() * (refs.length - 1));
@@ -560,6 +563,7 @@ $(document).ready(function() {
             nextfigure.refindex = hr;
         }
 
+        //draw next figure on place
         function drawnext(nextfigure, container) {
             var figurecontainer = curentdiv[container].html('');
             for (var i in nextfigure.figure) {
@@ -577,6 +581,7 @@ $(document).ready(function() {
             }
         }
 
+        //init next figures
         function setCurrents() {
             for (var a = 0; a < 2; a++) {
                 var nxt = {};
