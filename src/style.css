@@ -54,6 +54,7 @@ html, body {
     margin: 1px;
     background-color: #0a0a0a;
     z-index: 0;
+    -webkit-transition: 150ms ease-out;-moz-transition: 150ms ease-out;-ms-transition: 150ms ease-out;-o-transition: 150ms ease-out;transition: 150ms ease-out;
 }
 
 
@@ -90,4 +91,20 @@ html, body {
 .tactris-block.placed {
     box-shadow: inset 0px 0px 25px 0px rgba(0, 0, 0, 0.12);
     background-color: #ffffff;
+}
+.tactris-block.debug {
+    box-shadow: inset 0px 0px 25px 0px rgba(0, 0, 0, 0.12);
+    background-color: #ff6666;
+}
+
+#gameover {
+    position: absolute;
+    left:0px;
+    top:101px;
+    height: 298px;
+    width: 500px;
+    font-size: 35px;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: none;
+
 }

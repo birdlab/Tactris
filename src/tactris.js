@@ -394,6 +394,10 @@ $(document).ready(function() {
         }
 
         function initPole() {
+            polediv.html('');
+            $('#gameover').css('display', 'none');
+            score = 0;
+            viewport.find('#score span').html(score);
             pole = [];
             for (j = 0; j < dimensions; j++) {
                 var line = [];
@@ -458,34 +462,87 @@ $(document).ready(function() {
             for (var out in outlines) {
                 var line = outlines[out];
                 if (line.dir === 'x') {
-
                     //empty line
                     for (var i in pole[line.line]) {
                         var block = pole[line.line][parseInt(i)];
                         block.setState('empty');
-                        block.setPosition(parseInt(i), 9, false);
                     }
                     //rearange array
+                    var shift = 0;
                     if (line.line > 4) {
                         pole.push(pole.splice(line.line, 1)[0]);
+                        shift = 1;
                     } else {
                         pole.unshift(pole.splice(line.line, 1)[0]);
+                        shift = -1;
                     }
-                    for (var a in pole) {
-                        for (var i in pole[a]) {
-                            var b = parseInt(i);
-                            pole[a][b].setPosition(b, a, false);
-                        }
+                    if (outlines[out + 1] && line.dir == outlines[out + 1].dir) {
+                        outlines[out + 1].line += shift;
                     }
                 } else {
-                    //   for (var i in pole[line.line]) {
-                    //      var block = pole[i][line.line];
-                    //      block.setState('empty');
-                    //  }
+                    for (var i in pole[line.line]) {
+                        var ivar = parseInt(i);
+                        var block = pole[ivar][line.line];
+                        block.setState('empty');
+
+                        var f = pole[ivar].splice(line.line, 1)[0];
+                        console.log(f);
+                        if (line.line > 4) {
+                            pole[ivar].push(f);
+                        } else {
+                            pole[ivar].unshift(f);
+                        }
+                    }
+                    if (outlines[out + 1] && line.dir == outlines[out + 1].dir) {
+                        if (line.line > 4) {
+                            outlines[out + 1].line += 1;
+                        } else {
+                            outlines[out + 1].line -= 1;
+                        }
+
+                    }
+
+                }
+                for (var a in pole) {
+                    for (var i in pole[a]) {
+                        var b = parseInt(i);
+                        pole[a][b].setPosition(b, a, false);
+                    }
                 }
                 score += 10 * outlines.length;
                 viewport.find('#score span').html(score);
             }
+        }
+
+        function checkEnd() {
+            for (var f in curents) {
+                var curent = curents[f].figure;
+                for (var x in pole) {
+                    for (var y in pole[x]) {
+                        var counter = 0;
+                        for (var i in curent) {
+                            var cx = curent[i].y;
+                            var cy = curent[i].x;
+                            var tx = parseInt(y);
+                            var ty = parseInt(x);
+                            if (cx + tx < dimensions && cy + ty < dimensions) {
+                                if (pole[cx + tx][cy + ty].state != 'placed') {
+                                    counter += 1;
+                                }
+                            }
+                        }
+                        if (counter === 4) {
+                            return false;
+                        }
+
+                    }
+                }
+            }
+            return true;
+        }
+
+        function showEnd() {
+            $('#gameover').css('display', 'block');
         }
 
         //check user query for similarity
@@ -499,8 +556,13 @@ $(document).ready(function() {
                 }
                 userquery = [];
                 setnext(curents[checkindex]);
-                drawnext(curents[checkindex], checkindex);
                 checkLines();
+                if (checkEnd()) {
+                    console.log('fail');
+                    showEnd();
+                } else {
+                    console.log('ok');
+                }
             }
 
             var ok = function(sx, sy) {
@@ -561,23 +623,18 @@ $(document).ready(function() {
             var hr = getrandom();
             nextfigure.figure = refs[hr];
             nextfigure.refindex = hr;
+            if (nextfigure.fig) {
+                drawnext(nextfigure);
+            }
         }
 
         //draw next figure on place
-        function drawnext(nextfigure, container) {
-            var figurecontainer = curentdiv[container].html('');
-            for (var i in nextfigure.figure) {
-                var fig = nextfigure.figure[i];
-                fig.state = 'empty';
-                fig.div = newBlock(figurecontainer);
-                fig.setState = function(state) {
-                    if (state != this.state) {
-                        this.state = state;
-                        this.div.go(state);
-                    }
-                };
+        function drawnext(nextfigure) {
+            for (var i in nextfigure.fig) {
+                var fig = nextfigure.fig[i];
+                fig.x = nextfigure.figure[i].x;
+                fig.y = nextfigure.figure[i].y;
                 fig.div.setTo(fig);
-                fig.setState('active');
             }
         }
 
@@ -587,7 +644,25 @@ $(document).ready(function() {
                 var nxt = {};
                 curents.push(nxt);
                 setnext(nxt);
-                drawnext(nxt, a);
+                nxt.fig = [];
+                var figurecontainer = curentdiv[a].html('');
+                for (var i in nxt.figure) {
+                    nxt.fig.push({
+                        x: nxt.figure[i].x,
+                        y: nxt.figure[i].y,
+                        stage: 'empty',
+                        div: newBlock(figurecontainer),
+                        setState: function(state) {
+                            if (state != this.state) {
+                                this.state = state;
+                                this.div.go(state);
+                            }
+                        }
+                    });
+                    console.log(nxt.fig);
+                    nxt.fig[i].div.setTo(nxt.fig[i]);
+                    nxt.fig[i].setState('active');
+                }
             }
         }
 
@@ -600,5 +675,8 @@ $(document).ready(function() {
         });
         initPole();
         setCurrents();
+        $('#gameover').click(function() {
+            initPole();
+        });
     }(initData));
 });
