@@ -108,3 +108,12 @@ html, body {
     display: none;
 
 }
+a {
+    color: #aaddff;
+}
+#actions{
+    padding: 15px;
+}
+#state {
+    height: 150px;
+}

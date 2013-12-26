@@ -356,7 +356,52 @@ $(document).ready(function() {
             userquery = [],
             score = 0,
             mousedown = false,
+            laststate = null,
             curents = [];
+
+        var storage = {
+            /**
+             * get key value from localstorage
+             * @param {String} key
+             */
+            get: function(key) {
+                var retrievedObj = null;
+                try {
+                    var value = localStorage.getItem(key)
+                    if (value) {
+                        retrievedObj = JSON.parse(value);
+                    }
+                }
+                catch (e) {
+                }
+                return retrievedObj;
+            },
+            /**
+             * set value of key to localstorage
+             * @param {String} key
+             * @param {*} value
+             */
+            set: function(key, value) {
+                try {
+                    var stringify = JSON.stringify(value);
+                    localStorage.setItem(key, stringify);
+                }
+                catch (e) {
+                }
+                return value;
+            },
+            /**
+             * delete value of key in localstorage
+             * @param {String} key
+             */
+            remove: function(key) {
+                try {
+                    localStorage.removeItem(key);
+                }
+                catch (e) {
+                }
+            }
+        };
 
 
         function newBlock(container) {
@@ -396,6 +441,9 @@ $(document).ready(function() {
         function initPole() {
             polediv.html('');
             $('#gameover').css('display', 'none');
+            if (storage.get('tactris.lastmove')) {
+                var state = storage.get('tactris.lastmove');
+            }
             score = 0;
             viewport.find('#score span').html(score);
             pole = [];
@@ -437,6 +485,48 @@ $(document).ready(function() {
             polediv.css({'width': samplesize * dimensions, 'height': samplesize * dimensions});
         }
 
+        function restoreGame(last) {
+            var state = null
+            if (!last) {
+                state = storage.get('tactris.state');
+            }
+            if (last) {
+                state = laststate;
+            }
+
+            if (state) {
+                for (j = 0; j < dimensions; j++) {
+                    for (i = 0; i < dimensions; i++) {
+                        pole[j][i].setState(state.pole[j][i]);
+                    }
+                }
+                score = state.score;
+                viewport.find('#score span').html(score);
+                setnext(curents[0], state.nexts[0]);
+                setnext(curents[1], state.nexts[1]);
+                if (last) {
+                    saveGame();
+                }
+            }
+        }
+
+        function saveGame() {
+            laststate = storage.get('tactris.state');
+            var state = {};
+            state.pole = [];
+            for (j = 0; j < dimensions; j++) {
+                var line = [];
+                state.pole.push(line);
+                for (i = 0; i < dimensions; i++) {
+                    line.push(pole[j][i].state);
+                }
+            }
+            state.score = score;
+            state.nexts = [curents[0].refindex, curents[1].refindex];
+            storage.set('tactris.state', state);
+            storage.set('tactris.saved', true);
+        }
+
 
         function checkLines() {
             var outlines = [];
@@ -476,9 +566,6 @@ $(document).ready(function() {
                         pole.unshift(pole.splice(line.line, 1)[0]);
                         shift = -1;
                     }
-                    if (outlines[out + 1] && line.dir == outlines[out + 1].dir) {
-                        outlines[out + 1].line += shift;
-                    }
                 } else {
                     for (var i in pole[line.line]) {
                         var ivar = parseInt(i);
@@ -493,20 +580,19 @@ $(document).ready(function() {
                             pole[ivar].unshift(f);
                         }
                     }
-                    if (outlines[out + 1] && line.dir == outlines[out + 1].dir) {
-                        if (line.line > 4) {
-                            outlines[out + 1].line += 1;
-                        } else {
-                            outlines[out + 1].line -= 1;
-                        }
-
-                    }
-
                 }
                 for (var a in pole) {
                     for (var i in pole[a]) {
                         var b = parseInt(i);
                         pole[a][b].setPosition(b, a, false);
+                    }
+                }
+                for (var last = parseInt(out) + 1; last < outlines.length; last++) {
+                    var nextline = outlines[last];
+                    if (nextline.dir === line.dir) {
+                        if (nextline.line > 4 && line.line > 4) {
+                            nextline.line -= 1;
+                        }
                     }
                 }
                 score += 10 * outlines.length;
@@ -558,10 +644,10 @@ $(document).ready(function() {
                 setnext(curents[checkindex]);
                 checkLines();
                 if (checkEnd()) {
-                    console.log('fail');
+                    storage.set('tactris.saved', false);
                     showEnd();
                 } else {
-                    console.log('ok');
+                    saveGame();
                 }
             }
 
@@ -597,7 +683,6 @@ $(document).ready(function() {
                 }
                 if (ok(lowx, lowy) || ok(lowx - 1, lowy) || ok(lowx, lowy - 1) || ok(lowx - 2, lowy) || ok(lowx, lowy - 2)) {
                     if (!mousedown && userquery.length == 4) {
-                        //savestate();
                         score += 4;
                         viewport.find('#score span').html(score);
                         instal();
@@ -609,7 +694,7 @@ $(document).ready(function() {
         }
 
         //choise random figure
-        function setnext(nextfigure) {
+        function setnext(nextfigure, index) {
             var getrandom = function() {
                 var holyrandom = Math.round(Math.random() * (refs.length - 1));
                 if (curents.length == 2) {
@@ -621,6 +706,9 @@ $(document).ready(function() {
                 return holyrandom;
             }
             var hr = getrandom();
+            if (index) {
+                hr = index;
+            }
             nextfigure.figure = refs[hr];
             nextfigure.refindex = hr;
             if (nextfigure.fig) {
@@ -675,8 +763,17 @@ $(document).ready(function() {
         });
         initPole();
         setCurrents();
+        if (storage.get('tactris.saved')) {
+            restoreGame();
+        } else {
+            saveGame();
+        }
         $('#gameover').click(function() {
             initPole();
         });
+        $('#restore').click(function() {
+            restoreGame(true);
+            return null;
+        })
     }(initData));
 });
