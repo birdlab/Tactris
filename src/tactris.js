@@ -437,7 +437,7 @@ $(document).ready(function() {
                 var offset = parseInt(block.css('height')) + 1;
                 //console.log("'top':"+ logicObject.y * offset + "'px', 'left': "+logicObject.x * offset +" 'px'");
                 block.css({'top': logicObject.y * offset + 'px', 'left': logicObject.x * offset + 'px'});
-                block.html(logicObject.x + '-' + logicObject.y);
+                //block.html(logicObject.x + '-' + logicObject.y);
             }
             return block;
         }
