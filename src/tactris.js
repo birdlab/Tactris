@@ -357,7 +357,9 @@ $(document).ready(function() {
             score = 0,
             mousedown = false,
             laststate = null,
-            curents = [];
+            totaltime = Date.parse(new Date());
+            steptime = Date.parse(new Date());
+        curents = [];
 
         var storage = {
             /**
@@ -369,6 +371,7 @@ $(document).ready(function() {
                 try {
                     var value = localStorage.getItem(key)
                     if (value) {
+                        //console.log(value);
                         retrievedObj = JSON.parse(value);
                     }
                 }
@@ -431,9 +434,10 @@ $(document).ready(function() {
             }
             block.setTo = function(logicObject) {
                 this.logicObject = logicObject;
-                var offset = parseInt(block.css('height')) + parseInt(block.css('margin'));
+                var offset = parseInt(block.css('height')) + 1;
+                //console.log("'top':"+ logicObject.y * offset + "'px', 'left': "+logicObject.x * offset +" 'px'");
                 block.css({'top': logicObject.y * offset + 'px', 'left': logicObject.x * offset + 'px'});
-                // block.html(logicObject.x + '-' + logicObject.y);
+                block.html(logicObject.x + '-' + logicObject.y);
             }
             return block;
         }
@@ -480,8 +484,8 @@ $(document).ready(function() {
                     line.push(block);
                 }
             }
-            var sample = pole[0][0].div,
-                samplesize = parseInt(sample.css('height')) + parseInt(sample.css('margin'));
+            var sample = pole[0][0].div
+            var samplesize = parseInt(sample.css('height')) + parseInt(sample.css('margin'));
             polediv.css({'width': samplesize * dimensions, 'height': samplesize * dimensions});
         }
 
@@ -631,6 +635,13 @@ $(document).ready(function() {
             $('#gameover').css('display', 'block');
         }
 
+        function delta() {
+            var old = steptime;
+            steptime = Date.parse(new Date());
+            return (Date.parse(new Date()) - old)/1000;
+
+        }
+
         //check user query for similarity
         function checkFigure() {
             var checkindex = null;
@@ -645,9 +656,13 @@ $(document).ready(function() {
                 checkLines();
                 if (checkEnd()) {
                     storage.set('tactris.saved', false);
+                    var d=(Date.parse(new Date()) - totaltime)/1000;
+                    ga('send','score',score.toString(), d.toString());
                     showEnd();
                 } else {
                     saveGame();
+                    var d=delta();
+                    ga('send','placed figure',curents[checkindex].refindex.toString(), d.toString());
                 }
             }
 
@@ -747,7 +762,6 @@ $(document).ready(function() {
                             }
                         }
                     });
-                    console.log(nxt.fig);
                     nxt.fig[i].div.setTo(nxt.fig[i]);
                     nxt.fig[i].setState('active');
                 }

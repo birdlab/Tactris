@@ -19,11 +19,19 @@ html, body {
     overflow: hidden;
     float: left;
     cursor: pointer;
+    -webkit-user-select: none;  /* Chrome all / Safari all */
+    -moz-user-select: none;     /* Firefox all */
+    -ms-user-select: none;      /* IE 10+ */
+
+    /* No support for these yet, use at own risk */
+    -o-user-select: none;
+    user-select: none;
 }
 
 #sidebar {
     width: 250px;
-    float: right;
+    left:500px;
+    position: relative;
 }
 
 #topinfo {
@@ -54,7 +62,11 @@ html, body {
     margin: 1px;
     background-color: #0a0a0a;
     z-index: 0;
-    -webkit-transition: 150ms ease-out;-moz-transition: 150ms ease-out;-ms-transition: 150ms ease-out;-o-transition: 150ms ease-out;transition: 150ms ease-out;
+    -webkit-transition: 150ms ease-out;
+    -moz-transition: 150ms ease-out;
+    -ms-transition: 150ms ease-out;
+    -o-transition: 150ms ease-out;
+    transition: 150ms ease-out;
 }
 
 
