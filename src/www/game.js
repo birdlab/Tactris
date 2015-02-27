@@ -289,7 +289,6 @@
     var score = 0;
     var scorediv = null
     var socket = null;
-    $('#gamecontent')
 
 })();
 
