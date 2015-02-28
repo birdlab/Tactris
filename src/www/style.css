@@ -8,6 +8,7 @@ html, body {
     width: 100%;
     height: 100%;
     display: table;
+    background: ;
 }
 
 .hide {
@@ -87,6 +88,10 @@ html, body {
 
 #pole {
 
+}
+.loginbutton {
+    display: table-cell;
+    padding: 20px;
 }
 
 #pole .tactris-block {
