@@ -8,11 +8,20 @@ html, body {
     width: 100%;
     height: 100%;
     display: table;
-    background: ;
+
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
 }
 
 .hide {
-    display: none;
+    display: none !important;
+}
+small {
+    font-size: 8pt;
 }
 #start {
     display: table-cell;
@@ -21,15 +30,39 @@ html, body {
 }
 #start .inside {
     display: inline-block;
+    max-width: 300pt;
 }
+
+#newusername{
+    padding: 5pt;
+    font-size: 15pt;
+}
+.button{
+    border: none;
+    color: #333;
+    outline: none;
+    font-weight: bold;
+    cursor: pointer;
+    width: auto;
+    padding: 12px;
+    background: #dadada;
+    margin-top:5pt;
+    display: inline-block;
+}
+
+
 #tactris {
-    width: 100%;
+    display: table-cell;
+    text-align: center;
+    vertical-align: middle;
 }
 
-#gamecontent {
-    position: absolute;
+.forcenter {
+    display: inline-block;
 }
-
+#gamecontent{
+    position: relative;
+}
 #pole {
     overflow: hidden;
     float: left;
@@ -67,16 +100,11 @@ html, body {
     float: left;
 }
 
-.forcenter {
-    width: 640px;
-    margin: 0px auto;
-}
-
 
 .tactris-block {
-    position: absolute;
     margin: 1px;
     background-color: #0a0a0a;
+    position: absolute;
     z-index: 0;
     -webkit-transition: 150ms ease-out;
     -moz-transition: 150ms ease-out;
