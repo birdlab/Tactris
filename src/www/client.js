@@ -117,6 +117,11 @@ var TACTRIS = (function(_t) {
                                 }
                             }
                         };
+
+                        var st = 'empty';
+                        if (data.pole[j][i] == 1) {
+                            block.setState('active');
+                        }
                         block.div.setTo(block);
                         line.push(block);
                     }
