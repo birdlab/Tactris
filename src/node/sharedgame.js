@@ -1,5 +1,350 @@
 var db = require('./db.js');
 
+var refs = refs = [
+    [
+        {
+            x: 0,
+            y: 0
+        },
+        {
+            x: 0,
+            y: 1
+        },
+        {
+            x: 0,
+            y: 2
+        },
+        {
+            x: 0,
+            y: 3
+        }
+    ],
+    [
+        {
+            x: 0,
+            y: 0
+        },
+        {
+            x: 1,
+            y: 0
+        },
+        {
+            x: 2,
+            y: 0
+        },
+        {
+            x: 3,
+            y: 0
+        }
+    ],
+    [
+        {
+            x: 0,
+            y: 1
+        },
+        {
+            x: 1,
+            y: 1
+        },
+        {
+            x: 1,
+            y: 0
+        },
+        {
+            x: 0,
+            y: 0
+        }
+    ],
+    [
+        {
+            x: 0,
+            y: 1
+        },
+        {
+            x: 1,
+            y: 1
+        },
+        {
+            x: 1,
+            y: 0
+        },
+        {
+            x: 2,
+            y: 0
+        }
+    ],
+    [
+        {
+            x: 2,
+            y: 1
+        },
+        {
+            x: 1,
+            y: 1
+        },
+        {
+            x: 1,
+            y: 0
+        },
+        {
+            x: 0,
+            y: 0
+        }
+    ],
+    [
+        {
+            x: 0,
+            y: 2
+        },
+        {
+            x: 0,
+            y: 1
+        },
+        {
+            x: 1,
+            y: 1
+        },
+        {
+            x: 1,
+            y: 0
+        }
+    ],
+    [
+        {
+            x: 1,
+            y: 2
+        },
+        {
+            x: 0,
+            y: 1
+        },
+        {
+            x: 1,
+            y: 1
+        },
+        {
+            x: 0,
+            y: 0
+        }
+    ],
+    [
+        {
+            x: 2,
+            y: 1
+        },
+        {
+            x: 1,
+            y: 1
+        },
+        {
+            x: 0,
+            y: 1
+        },
+        {
+            x: 0,
+            y: 0
+        }
+    ],
+    [
+        {
+            x: 0,
+            y: 2
+        },
+        {
+            x: 0,
+            y: 1
+        },
+        {
+            x: 0,
+            y: 0
+        },
+        {
+            x: 1,
+            y: 0
+        }
+    ],
+    [
+        {
+            x: 1,
+            y: 2
+        },
+        {
+            x: 0,
+            y: 2
+        },
+        {
+            x: 0,
+            y: 1
+        },
+        {
+            x: 0,
+            y: 0
+        }
+    ],
+    [
+        {
+            x: 0,
+            y: 2
+        },
+        {
+            x: 1,
+            y: 2
+        },
+        {
+            x: 1,
+            y: 1
+        },
+        {
+            x: 1,
+            y: 0
+        }
+    ],
+    [
+        {
+            x: 2,
+            y: 0
+        },
+        {
+            x: 1,
+            y: 0
+        },
+        {
+            x: 0,
+            y: 0
+        },
+        {
+            x: 0,
+            y: 1
+        }
+    ],
+    [
+        {
+            x: 1,
+            y: 2
+        },
+        {
+            x: 1,
+            y: 1
+        },
+        {
+            x: 1,
+            y: 0
+        },
+        {
+            x: 0,
+            y: 0
+        }
+    ],
+    [
+        {
+            x: 2,
+            y: 1
+        },
+        {
+            x: 2,
+            y: 0
+        },
+        {
+            x: 1,
+            y: 0
+        },
+        {
+            x: 0,
+            y: 0
+        }
+    ],
+    [
+        {
+            x: 2,
+            y: 0
+        },
+        {
+            x: 2,
+            y: 1
+        },
+        {
+            x: 1,
+            y: 1
+        },
+        {
+            x: 0,
+            y: 1
+        }
+    ],
+    [
+        {
+            x: 1,
+            y: 0
+        },
+        {
+            x: 2,
+            y: 1
+        },
+        {
+            x: 1,
+            y: 1
+        },
+        {
+            x: 0,
+            y: 1
+        }
+    ],
+    [
+        {
+            x: 1,
+            y: 1
+        },
+        {
+            x: 0,
+            y: 0
+        },
+        {
+            x: 1,
+            y: 0
+        },
+        {
+            x: 2,
+            y: 0
+        }
+    ],
+    [
+        {
+            x: 1,
+            y: 1
+        },
+        {
+            x: 0,
+            y: 2
+        },
+        {
+            x: 0,
+            y: 1
+        },
+        {
+            x: 0,
+            y: 0
+        }
+    ],
+    [
+        {
+            x: 0,
+            y: 1
+        },
+        {
+            x: 1,
+            y: 2
+        },
+        {
+            x: 1,
+            y: 1
+        },
+        {
+            x: 1,
+            y: 0
+        }
+    ]
+];
+
 function Game(data) {
     if (data.dim) {
         this.dimention = data.dim;
@@ -21,10 +366,28 @@ function Game(data) {
     this.updaterate = Math.round(1000 / 12);
 }
 
-Game.prototype.pickPixel = function(pixel, socket, callback) {
+Game.prototype.insertFigure = function(socket, callback) {
     if (socket.currentGame && socket.currentGame == this) {
         var valid = true;
-
+        if (valid) {
+            if (socket.figure.length == 4) {
+                for (var f in socket.figure) {
+                    var sf = socket.figure[f];
+                    sf.state = 'placed';
+                    this.broadcast(sf);
+                }
+                socket.figure = [];
+            }
+        }
+    }
+}
+Game.prototype.pickPixel = function(pixel, socket) {
+    if (socket.currentGame && socket.currentGame == this) {
+        var valid = true;
+        if (this.pole[pixel.y][pixel.x] > 1) {
+            valid = false;
+            return;
+        }
         for (var f in socket.figure) {
             var sp = socket.figure[f];
             if ((sp.x == pixel.x) && (sp.y == pixel.y)) {
@@ -32,8 +395,8 @@ Game.prototype.pickPixel = function(pixel, socket, callback) {
                 break;
             }
         }
+
         if (valid) {
-            console.log(pixel);
             socket.figure.push(pixel);
             if (socket.figure.length > 4) {
                 var ftd = socket.figure.shift();
@@ -49,9 +412,13 @@ Game.prototype.pickPixel = function(pixel, socket, callback) {
 Game.prototype.broadcast = function(change) {
     if (change) {
         this.changes.push(change);
+        if (change.state == 'placed') {
+            this.pole[change.y][change.x] = 2;
+        }
         if (change.state == 'active') {
             this.pole[change.y][change.x] = 1;
-        } else {
+        }
+        if (change.state == 'empty') {
             this.pole[change.y][change.x] = 0;
         }
         this.pole[change.y][change.x].state = change.state;
@@ -78,12 +445,21 @@ Game.prototype.broadcast = function(change) {
 
 
 Game.prototype.addPlayer = function(socket, callback) {
-    socket.currentGame = this;
-    socket.figure = [];
 
-    var initData = {};
     this.sockets.push(socket);
     this.users.push(socket.user);
+
+    socket.currentGame = this;
+    socket.figure = [];
+    socket.currents = [];
+    for (var a = 0; a < 2; a++) {
+        var nxt = {};
+        socket.currents.push(nxt);
+        setnext(nxt, socket.currents);
+    }
+    console.log(socket.currents[0].figure);
+    var initData = {};
+    initData.currents = [socket.currents[0].figure, socket.currents[1].figure];
     initData.gameid = this.gameId;
     initData.pole = this.pole;
     initData.users = this.users;
@@ -102,6 +478,11 @@ Game.prototype.removePlayer = function(socket, callback) {
     for (var s in this.sockets) {
         var sk = this.sockets[s];
         if (sk == socket) {
+            for (var f in socket.figure) {
+                var sf = socket.figure[f];
+                sf.state = 'empty';
+                this.broadcast(sf);
+            }
             this.sockets.splice(s, 1);
             break;
         }
@@ -111,9 +492,30 @@ Game.prototype.removePlayer = function(socket, callback) {
 Game.prototype.save = function() {
     console.log('saving', this.dbdata.name);
     db.saveGame(this.dbdata, function(data) {
-        console.log('user saved - ', data);
+        console.log('game saved - ', data);
     });
     return this;
 }
 
 exports.Game = Game;
+
+
+function setnext(nextfigure, curents, index) {
+    if (index) {
+        hr = index;
+    } else {
+        var getrandom = function() {
+            var holyrandom = Math.round(Math.random() * (refs.length - 1));
+            if (curents && curents.length == 2) {
+                if (curents[1].refindex == holyrandom || curents[0].refindex == holyrandom) {
+                    holyrandom = getrandom();
+                }
+            }
+
+            return holyrandom;
+        }
+        var hr = getrandom();
+    }
+    nextfigure.figure = refs[hr];
+    nextfigure.refindex = hr;
+}

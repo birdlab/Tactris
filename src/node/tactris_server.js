@@ -13,12 +13,12 @@ var debug = true;
 var bindcommands = function(socket) {
     socket.on('insert', function(callback) {
         if (socket.currentGame) {
-            socket.currentGame.insetFigure(socket, callback);
+            socket.currentGame.insertFigure(socket, callback);
         }
     });
-    socket.on('pick', function(data, callback) {
+    socket.on('pick', function(data) {
         if (socket.currentGame) {
-            socket.currentGame.pickPixel(data, socket, callback);
+            socket.currentGame.pickPixel(data, socket);
         }
     });
     socket.on('getgame', function(data, callback) {
@@ -27,9 +27,6 @@ var bindcommands = function(socket) {
             games.push(game);
             game.addPlayer(socket, callback);
         }
-
-        console.log('user req game - ', data);
-        console.log('games - ', games);
 
         if (data.gt == 'open') {
             if (games.length) {
@@ -130,7 +127,6 @@ io.on('connection', function(socket) {
 
 
     socket.on('disconnect', function() {
-        console.dir(socket.id, ' disconnected');
         if (socket.currentGame) {
             socket.currentGame.removePlayer(socket, function() {
             });

@@ -51,7 +51,6 @@ exports.getUser = function(data, callback) {
             console.log('error ', err);
             console.log('docs ', docs);
             if (docs) {
-                console.log(docs);
                 var user = new User(docs);
                 callback({'user': user});
 
@@ -73,7 +72,7 @@ exports.saveUser = function(data, callback) {
         if (data) {
             var st = collection.update({_id: data._id}, data, function(err, docs) {
                 if (docs) {
-                    console.log(docs);
+                //    console.log(docs);
                     callback({ok: true});
                 } else {
                     callback({error: err});

@@ -10,6 +10,7 @@ var TACTRIS = (function(_t) {
         var pole = [];
         var viewport = $('#gamecontent');
         var polediv = viewport.children('#pole');
+        var curentdiv = [viewport.find('#next0'), viewport.find('#next1')];
         var mousedown = false;
         var updatecount = 0;
 
@@ -34,6 +35,7 @@ var TACTRIS = (function(_t) {
 
             $('#tactris').mouseup(function(e) {
                 mousedown = false;
+                _t.client.sendInsert();
             });
 
             function newBlock(container) {
@@ -88,6 +90,7 @@ var TACTRIS = (function(_t) {
             viewer.showGame = function(data) {
                 $('#start').addClass('hide');
                 $('#tactris').removeClass('hide');
+
                 var dimensions = data.pole.length;
                 for (j = 0; j < dimensions; j++) {
                     var line = [];
@@ -119,13 +122,47 @@ var TACTRIS = (function(_t) {
                         };
 
                         var st = 'empty';
+                        if (data.pole[j][i] == 2) {
+                            block.setState('placed');
+                        }
                         if (data.pole[j][i] == 1) {
                             block.setState('active');
+                        }
+                        if (data.pole[j][i] == 0) {
+                            block.setState('empty');
                         }
                         block.div.setTo(block);
                         line.push(block);
                     }
                 }
+
+                console.log(data);
+
+                if (data.currents) {
+                    for (var a = 0; a < 2; a++) {
+                        var nxt = {figure: data.currents[a]};
+                        console.log(nxt);
+                        nxt.fig = [];
+                        var figurecontainer = curentdiv[a].html('');
+                        for (var i in nxt.figure) {
+                            nxt.fig.push({
+                                x: nxt.figure[i].x,
+                                y: nxt.figure[i].y,
+                                stage: 'empty',
+                                div: newBlock(figurecontainer),
+                                setState: function(state) {
+                                    if (state != this.state) {
+                                        this.state = state;
+                                        this.div.go(state);
+                                    }
+                                }
+                            });
+                            nxt.fig[i].div.setTo(nxt.fig[i]);
+                            nxt.fig[i].setState('active');
+                        }
+                    }
+                }
+
                 var sample = pole[0][0].div
                 var samplesize = parseInt(sample.css('height')) + parseInt(sample.css('margin'));
                 polediv.css({'width': samplesize * dimensions, 'height': samplesize * dimensions});
@@ -160,11 +197,6 @@ var TACTRIS = (function(_t) {
                 console.log(updatecount);
                 for (var d in data) {
                     var st = data[d];
-                    if (st.state != 'empty') {
-                        st.state = 'debug';
-                    }
-
-                    console.log(st);
                     pole[st.y][st.x].setState(st.state);
                 }
             });
@@ -181,8 +213,8 @@ var TACTRIS = (function(_t) {
                 socket.emit('getgame', dt, function(data) {
                     console.log('gameinfo', data);
                     if (data.pole.length) {
-                        _t.viewer.showGame({pole: data.pole});
-                        console.log(socket);
+                        _t.viewer.showGame({pole: data.pole, currents:data.currents});
+
                     }
                 });
             }
