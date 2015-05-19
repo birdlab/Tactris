@@ -346,8 +346,9 @@ var refs = refs = [
 ];
 
 function Game(data) {
+    this.dimension = 10;
     if (data.dim) {
-        this.dimention = data.dim;
+        this.dimension = data.dim;
     }
     this.pole = [];
     this.users = [];
@@ -355,10 +356,10 @@ function Game(data) {
     this.changes = [];
 
     this.gameId = 'shared' + Math.round(Math.random() * 100000);
-    for (var y = 0; y < this.dimention; y++) {
+    for (var y = 0; y < this.dimension; y++) {
         var line = [];
         this.pole.push(line);
-        for (var x = 0; x < this.dimention; x++) {
+        for (var x = 0; x < this.dimension; x++) {
             line.push(0);
         }
     }
@@ -370,42 +371,97 @@ Game.prototype.insertFigure = function(socket, callback) {
     if (socket.currentGame && socket.currentGame == this) {
         var valid = true;
         if (valid) {
-            if (socket.figure.length == 4) {
+            if (socket.figure.length == 4 && this.checkFigure(socket)) {
                 for (var f in socket.figure) {
                     var sf = socket.figure[f];
                     sf.state = 'placed';
                     this.broadcast(sf);
                 }
                 socket.figure = [];
+                setnext(socket.currents[socket.checkindex], socket.currents);
+                socket.user.dbdata.exp+=4;
+                for (var s in this.sockets) {
+                    var so = this.sockets[s];
+                    var nnd = {
+                        newnext: {
+                            figure: socket.currents[socket.checkindex].figure,
+                            index: socket.checkindex},
+                        exp:socket.user.dbdata.exp,
+
+                        userid: socket.id
+
+                    }
+                    so.emit('playerupdate', nnd);
+                }
             }
         }
     }
 }
+
+Game.prototype.checkFigure = function(socket) {
+    var ok = function(sx, sy) {
+        for (var a in socket.currents) {
+            var curent = socket.currents[a].figure;
+            var counter = 0;
+            for (var b in socket.figure) {
+                for (var d in curent) {
+                    if (((socket.figure[b].x - sx) == curent[d].x) && ((socket.figure[b].y - sy) == curent[d].y)) {
+                        counter++;
+                    }
+                }
+            }
+            if (counter == socket.figure.length) {
+                socket.checkindex = a;
+                return true;
+            }
+        }
+        return false;
+    }
+    if (socket.figure.length > 1) {
+        var lowx = this.dimension;
+        var lowy = this.dimension;
+        for (var a in socket.figure) {
+            var block = socket.figure[a];
+            console.log(lowx, lowy, block);
+            if (block.x < lowx) {
+                lowx = block.x;
+            }
+            if (block.y < lowy) {
+                lowy = block.y;
+            }
+        }
+        if (ok(lowx, lowy) || ok(lowx - 1, lowy) || ok(lowx, lowy - 1) || ok(lowx - 2, lowy) || ok(lowx, lowy - 2)) {
+            return true;
+        } else {
+            var ftd = socket.figure.shift();
+            ftd.state = 'empty';
+            this.broadcast(ftd);
+            return false;
+        }
+    }
+}
+
+
 Game.prototype.pickPixel = function(pixel, socket) {
     if (socket.currentGame && socket.currentGame == this) {
-        var valid = true;
+
         if (this.pole[pixel.y][pixel.x] > 1) {
-            valid = false;
             return;
         }
+
         for (var f in socket.figure) {
             var sp = socket.figure[f];
             if ((sp.x == pixel.x) && (sp.y == pixel.y)) {
-                valid = false;
-                break;
+                return;
             }
         }
 
-        if (valid) {
-            socket.figure.push(pixel);
-            if (socket.figure.length > 4) {
-                var ftd = socket.figure.shift();
-                ftd.state = 'empty';
-                this.broadcast(ftd);
-            }
-            this.broadcast(pixel);
+        socket.figure.push(pixel);
 
-        }
+        this.broadcast(pixel);
+        this.checkFigure(socket);
+
+
     }
 }
 
@@ -498,7 +554,6 @@ Game.prototype.save = function() {
 }
 
 exports.Game = Game;
-
 
 function setnext(nextfigure, curents, index) {
     if (index) {
