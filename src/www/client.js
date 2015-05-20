@@ -68,7 +68,7 @@ var TACTRIS = (function(_t) {
                 }
                 block.setTo = function(logicObject) {
                     this.logicObject = logicObject;
-                    block.html(logicObject.x + '-' + logicObject.y);
+                   // block.html(logicObject.x + '-' + logicObject.y);
                     block.css({'top': logicObject.y * offset + 'px', 'left': logicObject.x * offset + 'px'});
                 }
                 return block;
@@ -110,7 +110,7 @@ var TACTRIS = (function(_t) {
                     if (line.dir === 'x') {
                         for (var a in pole[line.line]) {
                             var block = pole[line.line][a];
-                            block.setState('debug');
+                            block.setState('empty');
                         }
                         if (line.line > 4) {
                             pole.push(pole.splice(line.line, 1)[0]);
@@ -118,11 +118,11 @@ var TACTRIS = (function(_t) {
                             pole.unshift(pole.splice(line.line, 1)[0]);
                         }
                     } else {
-                        for (var b in pole[line.line]) {
+                        for (var b in pole) {
                             var block = pole[b][line.line];
                             block.setState('empty');
 
-                            var bl = pole[i].splice(line.line, 1)[0];
+                            var bl = pole[b].splice(line.line, 1)[0];
                             if (line.line > 4) {
                                 pole[b].push(bl);
                             } else {
