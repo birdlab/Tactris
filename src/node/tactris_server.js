@@ -31,12 +31,12 @@ var bindcommands = function(socket) {
         if (data.gt == 'open') {
             if (games.length) {
                 for (var g in games) {
-                    if (games[g].users.length < 4) {
+                   // if (games[g].users.length < 4) {
                         games[g].addPlayer(socket, callback);
                         break;
-                    } else {
-                        createshared();
-                    }
+                  ////  } else {
+                  //      createshared();
+                  //  }
 
                 }
 
