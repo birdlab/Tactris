@@ -7,7 +7,7 @@ var User = require('./user.js').User;
 var SharedGame = require('./sharedgame.js').Game;
 var games = [];
 var users = [];
-var debug = true;
+var debug = false;
 
 
 var bindcommands = function(socket) {
@@ -31,12 +31,12 @@ var bindcommands = function(socket) {
         if (data.gt == 'open') {
             if (games.length) {
                 for (var g in games) {
-                   // if (games[g].users.length < 4) {
+                    if (games[g].users.length < 4) {
                         games[g].addPlayer(socket, callback);
                         break;
-                  ////  } else {
-                  //      createshared();
-                  //  }
+                    } else {
+                        createshared();
+                    }
 
                 }
 
@@ -48,6 +48,17 @@ var bindcommands = function(socket) {
 
 }
 
+var removeUser = function(user) {
+    setTimeout(function(user) {
+        if (user) {
+            for (var u in users) {
+                if (user.id == users[u].id) {
+                    users.splice(u, 1);
+                }
+            }
+        }
+    }, 15000);
+}
 
 io.on('connection', function(socket) {
 
@@ -73,11 +84,11 @@ io.on('connection', function(socket) {
                     path: '/token.php?host=http://birdlab.ru&token=' + data.t
                 };
                 http.get(opt,function(res) {
-                    console.log(res.statusCode);
+                    //  console.log(res.statusCode);
                     if (res.statusCode == 200) {
                         res.on('data', function(chunk) {
                             var parsedData = JSON.parse(chunk);
-                            console.log('parsed from ulogin - ', parsedData);
+                            //   console.log('parsed from ulogin - ', parsedData);
 
                             db.getSocialUser(parsedData, function(data) {
                                 if (data) {
@@ -87,7 +98,7 @@ io.on('connection', function(socket) {
                                             if (data.n) {
                                                 parsedData.name = data.n;
                                                 db.createNewUser(parsedData, function(d) {
-                                                    console.log('new user - ', d.user);
+                                                    // console.log('new user - ', d.user);
                                                     if (d.user) {
                                                         socket.user = d.user;
                                                         users.push(socket.user);
@@ -102,8 +113,19 @@ io.on('connection', function(socket) {
                                         callback({newuser: parsedData.first_name + ' ' + parsedData.last_name});
                                     }
                                     if (data.user) {
+                                        var finded = false;
+                                        for (var u in users) {
+                                            if (data.user.id == users[u].id) {
+                                                data.user = users[u];
+                                                finded = true;
+                                                break;
+                                            }
+                                        }
+                                        if (finded) {
+                                            users.push(socket.user);
+                                        }
                                         socket.user = data.user;
-                                        users.push(socket.user);
+
                                         bindcommands(socket);
                                         callback({user: socket.user.minimize()});
                                     }
@@ -128,6 +150,7 @@ io.on('connection', function(socket) {
 
     socket.on('disconnect', function() {
         if (socket.currentGame) {
+            removeUser(socket.user);
             socket.currentGame.removePlayer(socket, function() {
             });
         }

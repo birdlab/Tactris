@@ -2,7 +2,7 @@
  * Created by Bird on 27.02.15.
  */
 
-var debug = true;
+var debug = false;
 var TACTRIS = (function(_t) {
 
     $(document).ready(function() {
