@@ -373,7 +373,6 @@ Game.prototype.insertFigure = function(socket, callback) {
         var valid = true;
 
 
-
         if (valid) {
             if (socket.figure.length == 4 && this.checkFigure(socket)) {
                 for (var f in socket.figure) {
@@ -450,6 +449,35 @@ Game.prototype.checkEnd = function() {
     return true;
 }
 
+Game.prototype.rebuildfigures = function(line) {
+    console.log(line);
+    for (var s in this.sockets) {
+        console.log('before - ', this.sockets[s].figure);
+        for (var f in this.sockets[s].figure) {
+            if (line.line > 4) {
+                if (line.dir == 'y' && this.sockets[s].figure[f].x > 4) {
+                    this.sockets[s].figure[f].x--;
+                }
+                if (line.dir == 'x' && this.sockets[s].figure[f].y > 4) {
+                    this.sockets[s].figure[f].y--;
+                }
+
+            }
+            if (line.line < 5) {
+                if (line.dir == 'y' && this.sockets[s].figure[f].x < 5) {
+                    this.sockets[s].figure[f].x++;
+                }
+                if (line.dir == 'x' && this.sockets[s].figure[f].y < 5) {
+                    this.sockets[s].figure[f].y++;
+                }
+
+            }
+        }
+        console.log('after - ', this.sockets[s].figure);
+    }
+}
+
+
 Game.prototype.checkLines = function() {
     var outlines = [];
     for (var j in this.pole) {
@@ -479,6 +507,7 @@ Game.prototype.checkLines = function() {
     }
     for (var out in outlines) {
         var line = outlines[out];
+        this.rebuildfigures(line);
         if (line.dir === 'x') {
             //empty line
             for (var i in this.pole[line.line]) {
