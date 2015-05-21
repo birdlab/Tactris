@@ -21,7 +21,6 @@ exports.getSocialUser = function(data, callback) {
     var collection = db.collection('user');
     if (db) {
 
-        console.log('db getting user - ', data);
         if (data.uid) {
             collection.findOne({network: data.network, uid: data.uid}, function(err, docs) {
                 console.log(docs);
