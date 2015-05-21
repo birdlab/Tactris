@@ -14,8 +14,8 @@ var TACTRIS = (function(_t) {
         var currents = [];
         var mousedown = false;
         var updatecount = 0;
-
-
+        var user = {};
+        var players=[];
         /*
          function componentToHex(c) {
          var hex = c.toString(16);
@@ -68,7 +68,7 @@ var TACTRIS = (function(_t) {
                 }
                 block.setTo = function(logicObject) {
                     this.logicObject = logicObject;
-                   // block.html(logicObject.x + '-' + logicObject.y);
+                    // block.html(logicObject.x + '-' + logicObject.y);
                     block.css({'top': logicObject.y * offset + 'px', 'left': logicObject.x * offset + 'px'});
                 }
                 return block;
@@ -239,10 +239,10 @@ var TACTRIS = (function(_t) {
                 });
             }
             viewer.clearPole = function() {
-                for (j = 0; j < dimensions; j++) {
+                for (j = 0; j < pole.length; j++) {
                     var line = pole[j];
                     pole.push(line);
-                    for (i = 0; i < dimensions; i++) {
+                    for (i = 0; i < pole.length; i++) {
                         pole[j][i].setState('empty');
                     }
                 }
@@ -324,6 +324,7 @@ var TACTRIS = (function(_t) {
 
                 if (data.user) {
                     console.log(data.user);
+                    user=data.user;
                     _t.viewer.showProgress('Привет, ' + data.user.name + '! <br> Сейчас мы найдем подходящую игру...');
                     getgame();
                 }
