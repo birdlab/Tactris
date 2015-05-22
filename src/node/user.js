@@ -17,7 +17,7 @@ User.prototype.save = function() {
 User.prototype.addXp = function(xpink) {
     this.dbdata.exp = this.dbdata.exp + xpink;
     console.log('xp added - ', xpink);
-    this.save();
+//    this.save();
     return this.dbdata.exp;
 }
 

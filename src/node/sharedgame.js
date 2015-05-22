@@ -702,6 +702,9 @@ Game.prototype.removePlayer = function(socket, callback) {
             break;
         }
     }
+    socket.user.save();
+    this.emit('deluser', {id:socket.user.dbdata._id.toString()} );
+    this.checkLines();
     callback();
 }
 Game.prototype.save = function() {
