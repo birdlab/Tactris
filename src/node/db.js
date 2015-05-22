@@ -25,10 +25,10 @@ exports.getSocialUser = function(data, callback) {
             collection.findOne({network: data.network, uid: data.uid}, function(err, docs) {
                 console.log(docs);
                 if (docs) {
+                    console.log('docs - ', docs);
                     var user = new User(docs);
                     callback({'user': user});
                 } else {
-                    console.log('user not finded');
                     callback({newuser: true});
                 }
 

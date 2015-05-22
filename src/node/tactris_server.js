@@ -49,10 +49,10 @@ var bindcommands = function(socket) {
 }
 
 var removeUser = function(user) {
-    setTimeout(function(user) {
+    setTimeout(function() {
         if (user) {
             for (var u in users) {
-                if (user.id == users[u].id) {
+                if (user.dbdata._id.toString() ===  users[u].dbdata._id.toString()) {
                     users.splice(u, 1);
                 }
             }
@@ -89,48 +89,53 @@ io.on('connection', function(socket) {
                         res.on('data', function(chunk) {
                             var parsedData = JSON.parse(chunk);
                             //   console.log('parsed from ulogin - ', parsedData);
+                            if (parsedData.uid) {
 
-                            db.getSocialUser(parsedData, function(data) {
-                                if (data) {
-                                    if (data.newuser) {
-                                        socket.on('signup', function(data, callback) {
-                                            console.log(data);
-                                            if (data.n) {
-                                                parsedData.name = data.n;
-                                                db.createNewUser(parsedData, function(d) {
-                                                    // console.log('new user - ', d.user);
-                                                    if (d.user) {
-                                                        socket.user = d.user;
-                                                        users.push(socket.user);
-                                                        bindcommands(socket);
-                                                        callback({user: socket.user.minimize()});
+                                db.getSocialUser(parsedData, function(data) {
+                                    if (data) {
+                                        if (data.newuser) {
+                                            socket.on('signup', function(data, callback) {
+                                                console.log(data);
+                                                if (data.n) {
+                                                    parsedData.name = data.n;
+                                                    db.createNewUser(parsedData, function(d) {
+                                                        // console.log('new user - ', d.user);
+                                                        if (d.user) {
+                                                            socket.user = d.user;
+                                                            users.push(socket.user);
+                                                            bindcommands(socket);
+                                                            callback({user: socket.user.minimize()});
 
-                                                    }
+                                                        }
 
-                                                });
-                                            }
-                                        });
-                                        callback({newuser: parsedData.first_name + ' ' + parsedData.last_name});
-                                    }
-                                    if (data.user) {
-                                        var finded = false;
-                                        for (var u in users) {
-                                            if (data.user.id == users[u].id) {
-                                                data.user = users[u];
-                                                finded = true;
-                                                break;
-                                            }
+                                                    });
+                                                }
+                                            });
+                                            callback({newuser: parsedData.first_name + ' ' + parsedData.last_name});
                                         }
-                                        if (finded) {
-                                            users.push(socket.user);
-                                        }
-                                        socket.user = data.user;
+                                        if (data.user) {
 
-                                        bindcommands(socket);
-                                        callback({user: socket.user.minimize()});
+                                            //   var finded = false;
+                                            //   for (var u in users) {
+                                            //      if (data.user.minimize() == users[u].minimize()) {
+                                            //          data.user = users[u];
+                                            //           finded = true;
+                                            //           break;
+                                            //      }
+                                            // }
+                                            // if (!finded) {
+                                           // users.push(socket.user);
+                                            //  }
+                                            socket.user = data.user;
+
+                                            bindcommands(socket);
+                                            callback({user: socket.user.minimize()});
+                                        }
                                     }
-                                }
-                            });
+                                });
+
+                            }
+
 
                         });
 

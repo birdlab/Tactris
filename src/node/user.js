@@ -1,11 +1,8 @@
 var db = require('./db.js');
 
 function User(data) {
-    console.log('db data - ', data);
     this.dbdata = data;
-    this.dbdata.level = data.level || 1;
     this.dbdata.exp = data.exp || 0;
-    console.dir('init user', this);
 }
 
 
@@ -21,11 +18,12 @@ User.prototype.addXp = function(xpink) {
     this.dbdata.exp = this.dbdata.exp + xpink;
     console.log('xp added - ', xpink);
     this.save();
+    return this.dbdata.exp;
 }
 
 User.prototype.minimize = function() {
     var obj = {
-        _id: this._id,
+        _id: this.dbdata._id.toString(),
         name: this.dbdata.name,
         profile: this.dbdata.profile,
         level: this.dbdata.level,

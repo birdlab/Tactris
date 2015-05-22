@@ -354,7 +354,6 @@ function Game(data) {
     this.users = [];
     this.sockets = [];
     this.changes = [];
-
     this.gameId = 'shared' + Math.round(Math.random() * 100000);
     for (var y = 0; y < this.dimension; y++) {
         var line = [];
@@ -373,49 +372,48 @@ Game.prototype.insertFigure = function(socket, callback) {
         var valid = true;
 
 
-        if (valid) {
-            if (socket.figure.length == 4 && this.checkFigure(socket)) {
-                for (var f in socket.figure) {
-                    var sf = socket.figure[f];
-                    sf.state = 'placed';
-                    this.pole[sf.y][sf.x] = 2;
-                }
-                this.emit('placed', socket.figure);
-                socket.figure = [];
-                setnext(socket.currents[socket.checkindex], socket.currents);
-                socket.user.dbdata.exp += 4;
-                var nnd = {
-                    newnext: {
-                        figure: socket.currents[socket.checkindex].figure,
-                        index: socket.checkindex},
-                    exp: socket.user.dbdata.exp,
+        if (socket.figure.length == 4 && this.checkFigure(socket)) {
+            for (var f in socket.figure) {
+                var sf = socket.figure[f];
+                sf.state = 'placed';
+                this.pole[sf.y][sf.x] = 2;
+            }
+            this.emit('placed', socket.figure);
+            socket.figure = [];
+            socket.score+=4;
+            setnext(socket.currents[socket.checkindex], socket.currents);
+            var nnd = {
+                newnext: {
+                    figure: socket.currents[socket.checkindex].figure,
+                    index: socket.checkindex},
+                exp: socket.user.addXp(4),
+                score:socket.score,
+                userid: socket.user.dbdata._id.toString()
 
-                    userid: socket.id
+            }
 
-                }
+            this.emit('playerupdate', nnd);
 
-                this.emit('playerupdate', nnd);
+            this.checkLines();
 
-                this.checkLines();
-
-                if (this.checkEnd()) {
-                    this.pole = [];
-                    for (var y = 0; y < this.dimension; y++) {
-                        var line = [];
-                        this.pole.push(line);
-                        for (var x = 0; x < this.dimension; x++) {
-                            line.push(0);
-                        }
+            if (this.checkEnd()) {
+                this.pole = [];
+                for (var y = 0; y < this.dimension; y++) {
+                    var line = [];
+                    this.pole.push(line);
+                    for (var x = 0; x < this.dimension; x++) {
+                        line.push(0);
                     }
-
-                    for (var s in this.sockets) {
-                        var so = this.sockets[s];
-                        so.figure = [];
-                    }
-                    this.emit('gameover');
                 }
+
+                for (var s in this.sockets) {
+                    var so = this.sockets[s];
+                    so.figure = [];
+                }
+                this.emit('gameover');
             }
         }
+
     }
 }
 
@@ -658,6 +656,7 @@ Game.prototype.addPlayer = function(socket, callback) {
     this.users.push(socket.user);
 
     socket.currentGame = this;
+    socket.score=0;
     socket.figure = [];
     socket.currents = [];
     for (var a = 0; a < 2; a++) {
@@ -667,10 +666,18 @@ Game.prototype.addPlayer = function(socket, callback) {
     }
     console.log(socket.currents[0].figure);
     var initData = {};
+    initData.users = [];
+    for (var u in this.users){
+        initData.users.push(this.users[u].minimize());
+    }
+
+
+
+
     initData.currents = [socket.currents[0].figure, socket.currents[1].figure];
     initData.gameid = this.gameId;
     initData.pole = this.pole;
-    initData.users = this.users;
+
     callback(initData);
 }
 
