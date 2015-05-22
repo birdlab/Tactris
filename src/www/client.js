@@ -15,7 +15,8 @@ var TACTRIS = (function(_t) {
         var mousedown = false;
         var updatecount = 0;
         var user = {};
-        var players=[];
+        var users = [];
+        var moveblock = false;
         /*
          function componentToHex(c) {
          var hex = c.toString(16);
@@ -45,6 +46,7 @@ var TACTRIS = (function(_t) {
                 var offset = parseInt(block.css('height')) + 1;
                 block.mousedown(function(e) {
                     mousedown = true;
+
                     if (block.logicObject.state != 'placed') {
                         block.logicObject.setState('active', true);
                     }
@@ -81,7 +83,7 @@ var TACTRIS = (function(_t) {
             viewer.showError = function(data) {
                 $('#start').removeClass('hide');
                 $('#tactris').addClass('hide');
-                $('#start .inside').html('<h1>Огорчение!</h1><p>Сервер не работает. Приходите позже. Все наладится )</p><small>' + data + '</small>');
+                $('#start .inside').html('<h1>Огорчение!</h1><p>С сервером случилась какая-то беда. Скоро все наладится )</p><small>' + data + '</small>');
             }
             viewer.showGreating = function(data) {
                 $('#start .inside').html('<h1>Привет, ' + data.name + '!</h1>');
@@ -90,6 +92,10 @@ var TACTRIS = (function(_t) {
                 $('#start .inside').html(message);
             }
 
+            viewer.updateUser = function(data) {
+                $('.exp.u'+data.userid+' span').html(data.exp);
+                $('.score.u'+data.userid+' span').html(data.score);
+            }
             viewer.showNext = function(data) {
                 console.log(currents[data.index]);
                 var nextfigure = currents[data.index];
@@ -104,45 +110,96 @@ var TACTRIS = (function(_t) {
             };
 
             viewer.cleanLines = function(outlines) {
-                for (var out in outlines) {
-                    var line = outlines[out];
-                    console.log(line.dir);
-                    if (line.dir === 'x') {
-                        for (var a in pole[line.line]) {
-                            var block = pole[line.line][a];
-                            block.setState('empty');
-                        }
-                        if (line.line > 4) {
-                            pole.push(pole.splice(line.line, 1)[0]);
-                        } else {
-                            pole.unshift(pole.splice(line.line, 1)[0]);
-                        }
-                    } else {
-                        for (var b in pole) {
-                            var block = pole[b][line.line];
-                            block.setState('empty');
+                var counter = 0;
+                moveblock=true;
 
-                            var bl = pole[b].splice(line.line, 1)[0];
-                            if (line.line > 4) {
-                                pole[b].push(bl);
+                var animate = function(obj) {
+                    if (obj.counter) {
+
+                        setTimeout(function() {
+                            if (obj.dir === 'x') {
+                                var cur = pole[obj.line][obj.counter - 1];
                             } else {
-                                pole[b].unshift(bl);
+                                var cur = pole[obj.counter - 1][obj.line];
+                            }
+                            cur.setState('empty');
+
+                            obj.counter++;
+                            if (obj.counter < 11) {
+                                animate(obj);
+                            } else {
+                                if (obj.callback) {
+                                    setTimeout(function() {
+                                        counter++;
+                                        obj.callback(obj)
+                                    }, 100);
+
+                                }
+                            }
+                        }, 18);
+
+                    } else {
+                        for (var c in pole[obj.line]) {
+                            if (obj.dir === 'x') {
+                                pole[obj.line][c].setState('active');
+                            } else {
+                                pole[c][obj.line].setState('active');
                             }
                         }
+                        obj.counter = 1;
+                        setTimeout(function() {
+                            animate(obj);
+                        }, 100);
+                    }
+                }
+
+                var shiftLines = function() {
+                    for (var out in outlines) {
+                        var line = outlines[out];
+                        console.log(line);
+                        if (line.dir === 'x') {
+                            if (line.line > 4) {
+                                pole.push(pole.splice(line.line, 1)[0]);
+                            } else {
+                                pole.unshift(pole.splice(line.line, 1)[0]);
+                            }
+                        } else {
+                            for (var b in pole) {
+                                var bl = pole[b].splice(line.line, 1)[0];
+                                if (line.line > 4) {
+                                    pole[b].push(bl);
+                                } else {
+                                    pole[b].unshift(bl);
+                                }
+                            }
+                        }
+                        for (var last = parseInt(out) + 1; last < outlines.length; last++) {
+                            var nextline = outlines[last];
+                            if (nextline.dir == line.dir) {
+                                if (nextline.line > 4 && line.line > 4) {
+                                    nextline.line--;
+                                }
+                            }
+                        }
+
                     }
                     for (var c in pole) {
                         for (var f in pole[c]) {
                             pole[c][f].setPosition(f, c, false);
                         }
                     }
-                    for (var last = parseInt(out) + 1; last < outlines.length; last++) {
-                        var nextline = outlines[last];
-                        if (nextline.dir === line.dir) {
-                            if (nextline.line > 4 && line.line > 4) {
-                                nextline.line -= 1;
-                            }
+                    moveblock=false;
+                }
+
+
+                for (var out in outlines) {
+                    var line = outlines[out];
+                    animate({line: line.line, dir: line.dir, callback: function(li) {
+                        if (counter == outlines.length) {
+                            shiftLines();
                         }
-                    }
+                    }});
+
                     //  score += 10 * outlines.length;
                     //  viewport.find('#score span').html(score);
                 }
@@ -165,10 +222,13 @@ var TACTRIS = (function(_t) {
                             div: newBlock(polediv),
                             setState: function(state, self) {
                                 if (state != this.state) {
-                                    this.state = state;
-                                    this.div.go(state);
-                                    if (self) {
-                                        _t.client.sendPick(this);
+                                    if (!(self&&moveblock)) {
+
+                                        this.state = state;
+                                        this.div.go(state);
+                                        if (self) {
+                                            _t.client.sendPick(this);
+                                        }
                                     }
                                 }
                             },
@@ -197,8 +257,21 @@ var TACTRIS = (function(_t) {
                         line.push(block);
                     }
                 }
+                if (data.users) {
+                    users=data.users;
+                    var userpanel=$('<div class="sidebar"></div>').appendTo(viewport);
+                    for (var u in data.users) {
+                        var usr='<div class="insideuserpanel"><table class="topinfo"><tr><td class="stats exp u'+users[u]._id+'">Exp <span>'+users[u].exp+'</span></td>';
+                        usr+='<td class="stats score u'+users[u]._id+'">Score: <span>0</span></td></tr></table><div class="state">'
+                        usr+='<div class="next next0 u'+users[u]._id+'"></div><div class="next next1 u'+users[u]._id+'"></div></div></div>'
+                        $(usr).appendTo(userpanel);
+
+                    }
+                }
 
                 if (data.currents) {
+                    var curentdiv=[viewport.find('.next0.u'+user._id), viewport.find('.next1.u'+user._id)];
+                    console.log(curentdiv);
                     for (var a = 0; a < 2; a++) {
                         var nxt = {figure: data.currents[a]};
                         currents.push(nxt);
@@ -240,8 +313,6 @@ var TACTRIS = (function(_t) {
             }
             viewer.clearPole = function() {
                 for (j = 0; j < pole.length; j++) {
-                    var line = pole[j];
-                    pole.push(line);
                     for (i = 0; i < pole.length; i++) {
                         pole[j][i].setState('empty');
                     }
@@ -275,9 +346,12 @@ var TACTRIS = (function(_t) {
                 }
             });
             socket.on('playerupdate', function(data) {
-                if (data.userid == socket.id) {
+                if (data.userid == user._id) {
                     if (data.newnext) {
                         _t.viewer.showNext(data.newnext);
+                    }
+                    if (data.exp){
+                        _t.viewer.updateUser(data);
                     }
                 }
             });
@@ -305,7 +379,7 @@ var TACTRIS = (function(_t) {
                 socket.emit('getgame', dt, function(data) {
                     console.log('gameinfo', data);
                     if (data.pole.length) {
-                        _t.viewer.showGame({pole: data.pole, currents: data.currents});
+                        _t.viewer.showGame(data);
 
                     }
                 });
@@ -324,7 +398,7 @@ var TACTRIS = (function(_t) {
 
                 if (data.user) {
                     console.log(data.user);
-                    user=data.user;
+                    user = data.user;
                     _t.viewer.showProgress('Привет, ' + data.user.name + '! <br> Сейчас мы найдем подходящую игру...');
                     getgame();
                 }
