@@ -10,13 +10,15 @@ var TACTRIS = (function(_t) {
         var pole = [];
         var viewport = $('#gamecontent');
         var polediv = viewport.children('#pole');
-        var curentdiv = [viewport.find('#next0'), viewport.find('#next1')];
-        var currents = [];
         var mousedown = false;
-        var updatecount = 0;
+        var userpanel = null;
+        var userpanel2 = null;
+
+
         var user = {};
         var users = [];
         var moveblock = false;
+        var pause = false;
         /*
          function componentToHex(c) {
          var hex = c.toString(16);
@@ -29,15 +31,42 @@ var TACTRIS = (function(_t) {
 
          */
 
+        var shake = function(dir, index) {
+            var cls = 'shakey';
+            if (dir == 'x') {
+                cls = 'shakex';
+            }
+            if (index > 4) {
+                cls += 'up'
+            }
+            var val = setInterval(function() {
+                if (viewport.hasClass(cls)) {
+                    viewport.removeClass(cls);
+                } else {
+                    viewport.addClass(cls);
+                }
+            }, 40);
+            setTimeout(function() {
+                clearInterval(val)
+            }, 300);
+
+        }
+
         _t.viewer = (function() {
 
             var viewer = {};
 
             $(window).resize(onresize);
+            $(window).blur(function(e) {
+                _t.client.sendBlur();
+
+            });
 
             $('#tactris').mouseup(function(e) {
                 mousedown = false;
-                _t.client.sendInsert();
+                if (!moveblock) {
+                    _t.client.sendInsert();
+                }
             });
 
             var newBlock = function(container) {
@@ -45,16 +74,22 @@ var TACTRIS = (function(_t) {
                 var block = $('<div class="tactris-block"></div>').appendTo(container);
                 var offset = parseInt(block.css('height')) + 1;
                 block.mousedown(function(e) {
+                    if (pause) {
+                        pause = false;
+                    }
                     mousedown = true;
-
-                    if (block.logicObject.state != 'placed') {
-                        block.logicObject.setState('active', true);
+                    if (!moveblock) {
+                        if (block.logicObject.state != 'placed') {
+                            block.logicObject.setState('active', true);
+                        }
                     }
                 });
                 block.mouseenter(function(e) {
-                    if (mousedown) {
-                        if (block.logicObject.state != 'placed') {
-                            block.logicObject.setState('active', true);
+                    if (!moveblock) {
+                        if (mousedown) {
+                            if (block.logicObject.state != 'placed') {
+                                block.logicObject.setState('active', true);
+                            }
                         }
                     }
                     e.stopPropagation();
@@ -78,40 +113,57 @@ var TACTRIS = (function(_t) {
 
 
             viewer.showLogin = function() {
-                $('#start .inside').html(' Привет! Для начала трогни одну из кнопочек<div id="uLogin" data-ulogin="display=buttons;fields=first_name,last_name;providers=vkontakte,facebook;redirect_uri=http%3A%2F%2Fbirdlab.ru%2F;callback=login"><div class="loginbutton"><img src="vk.png" data-uloginbutton="vkontakte"/></div><div class="loginbutton"><img src="facebook.png" data-uloginbutton="facebook"/></div></div>');
+                $('#start .inside').html(' Привет! Для начала трогни одну из кнопочек<div id="uLogin" data-ulogin="display=buttons;fields=first_name,last_name;providers=vkontakte,facebook;redirect_uri=http%3A%2F%2Fbirdlab.ru%2F;callback=login"><div class="loginbutton"><img src="img/vk.png" data-uloginbutton="vkontakte"/></div><div class="loginbutton"><img src="img/facebook.png" data-uloginbutton="facebook"/></div></div>');
             }
             viewer.showError = function(data) {
                 $('#start').removeClass('hide');
                 $('#tactris').addClass('hide');
-                $('#start .inside').html('<h1>Огорчение!</h1><p>С сервером случилась какая-то беда. Скоро все наладится )</p><small>' + data + '</small>');
+                $('#start .inside').html('<h1>Без паники!</h1><p>Трактрис ушел доделываться. Спасибо за терпение ;)</p><small>Скоро:<br>индивидуальные цвета пользователей, обработка "заснувших" пользователей, звуковой пинг "заснувшего", внутриигровой чат, профиль пользователя со статистикой, таблицы рекородов, дуэли 1x1, рассылка приглашений в совместную игру для друзей</small>');
             }
             viewer.showGreating = function(data) {
-                $('#start .inside').html('<h1>Привет, ' + data.name + '!</h1>');
+                $('#start .inside').html('<h1>Привет, ' + data.name + '!</h1><div id="startprivate" class="uiblock">Моя игра</div><div id="startopen" class="uiblock">Открытая игра</div><div id="connectopen" class="uiblock">Подключиться к открытой игре</div>');
+                $('#startprivate').click(function() {
+                    _t.client.getGame('personal');
+                });
+                $('#startopen').click(function() {
+                    _t.client.getGame('newopen');
+                });
+                $('#connectopen').click(function() {
+                    _t.client.getGame('open');
+                });
+
             }
             viewer.showProgress = function(message) {
                 $('#start .inside').html(message);
             }
 
             viewer.updateUser = function(data) {
-                $('.exp.u'+data.userid+' span').html(data.exp);
-                $('.score.u'+data.userid+' span').html(data.score);
+                $('.score.u' + data.userid + ' span').html(data.score);
             }
             viewer.showNext = function(data) {
-                console.log(currents[data.index]);
-                var nextfigure = currents[data.index];
-                nextfigure.figure = data.figure;
-                for (var i in nextfigure.fig) {
-                    var fig = nextfigure.fig[i];
-                    fig.x = nextfigure.figure[i].x;
-                    fig.y = nextfigure.figure[i].y;
-                    fig.div.setTo(fig);
+                for (var u in users) {
+                    if (users[u].id === data.userid) {
+                        var user = users[u];
+                        console.log('user finded');
+                        console.log(user)
+                        var nextfigure = user.preview[data.newnext.index];
+                        nextfigure.figure = data.newnext.figure;
+                        for (var i in nextfigure.fig) {
+                            var fig = nextfigure.fig[i];
+                            fig.x = nextfigure.figure[i].x;
+                            fig.y = nextfigure.figure[i].y;
+                            fig.div.setTo(fig);
+                        }
+                        break;
+
+                    }
                 }
-                console.log(currents[data.index]);
+
             };
 
             viewer.cleanLines = function(outlines) {
                 var counter = 0;
-                moveblock=true;
+                moveblock = true;
 
                 var animate = function(obj) {
                     if (obj.counter) {
@@ -156,7 +208,6 @@ var TACTRIS = (function(_t) {
                 var shiftLines = function() {
                     for (var out in outlines) {
                         var line = outlines[out];
-                        console.log(line);
                         if (line.dir === 'x') {
                             if (line.line > 4) {
                                 pole.push(pole.splice(line.line, 1)[0]);
@@ -188,26 +239,23 @@ var TACTRIS = (function(_t) {
                             pole[c][f].setPosition(f, c, false);
                         }
                     }
-                    moveblock=false;
+                    moveblock = false;
                 }
-
 
                 for (var out in outlines) {
                     var line = outlines[out];
                     animate({line: line.line, dir: line.dir, callback: function(li) {
                         if (counter == outlines.length) {
+                            // shake(line.dir);
                             shiftLines();
                         }
                     }});
-
-                    //  score += 10 * outlines.length;
-                    //  viewport.find('#score span').html(score);
                 }
-
 
             }
 
             viewer.showGame = function(data) {
+                $('#disclaimer').addClass('hide');
                 $('#start').addClass('hide');
                 $('#tactris').removeClass('hide');
                 var dimensions = data.pole.length;
@@ -221,15 +269,11 @@ var TACTRIS = (function(_t) {
                             state: 'empty',
                             div: newBlock(polediv),
                             setState: function(state, self) {
-                                if (state != this.state) {
-                                    if (!(self&&moveblock)) {
 
-                                        this.state = state;
-                                        this.div.go(state);
-                                        if (self) {
-                                            _t.client.sendPick(this);
-                                        }
-                                    }
+                                this.state = state;
+                                this.div.go(state);
+                                if (self) {
+                                    _t.client.sendPick(this);
                                 }
                             },
                             setPosition: function(x, y, animate) {
@@ -242,15 +286,11 @@ var TACTRIS = (function(_t) {
                                 }
                             }
                         };
-
                         var st = 'empty';
-                        if (data.pole[j][i] == 2) {
+                        if (data.pole[j][i] === 1) {
                             block.setState('placed');
                         }
-                        if (data.pole[j][i] == 1) {
-                            block.setState('active');
-                        }
-                        if (data.pole[j][i] == 0) {
+                        if (data.pole[j][i] === 0) {
                             block.setState('empty');
                         }
                         block.div.setTo(block);
@@ -258,48 +298,82 @@ var TACTRIS = (function(_t) {
                     }
                 }
                 if (data.users) {
-                    users=data.users;
-                    var userpanel=$('<div class="sidebar"></div>').appendTo(viewport);
-                    for (var u in data.users) {
-                        var usr='<div class="insideuserpanel"><table class="topinfo"><tr><td class="stats exp u'+users[u]._id+'">Exp <span>'+users[u].exp+'</span></td>';
-                        usr+='<td class="stats score u'+users[u]._id+'">Score: <span>0</span></td></tr></table><div class="state">'
-                        usr+='<div class="next next0 u'+users[u]._id+'"></div><div class="next next1 u'+users[u]._id+'"></div></div></div>'
-                        $(usr).appendTo(userpanel);
-
-                    }
-                }
-
-                if (data.currents) {
-                    var curentdiv=[viewport.find('.next0.u'+user._id), viewport.find('.next1.u'+user._id)];
-                    console.log(curentdiv);
-                    for (var a = 0; a < 2; a++) {
-                        var nxt = {figure: data.currents[a]};
-                        currents.push(nxt);
-                        console.log(nxt);
-                        nxt.fig = [];
-                        var figurecontainer = curentdiv[a].html('');
-                        for (var i in nxt.figure) {
-                            nxt.fig.push({
-                                x: nxt.figure[i].x,
-                                y: nxt.figure[i].y,
-                                stage: 'empty',
-                                div: newBlock(figurecontainer),
-                                setState: function(state) {
-                                    if (state != this.state) {
-                                        this.state = state;
-                                        this.div.go(state);
-                                    }
-                                }
-                            });
-                            nxt.fig[i].div.setTo(nxt.fig[i]);
-                            nxt.fig[i].setState('active');
+                    for (var us in data.users) {
+                        if (data.users[us].id == user.id) {
+                            var uss = data.users.splice(us, 1)[0];
+                            data.users.unshift(uss);
+                            break;
                         }
+                    }
+                    users = [];
+                    userpanel = $('<div class="sidebar"></div>').appendTo(viewport);
+                    for (var u in data.users) {
+                        viewer.addUser(data.users[u]);
                     }
                 }
 
                 var sample = pole[0][0].div
                 var samplesize = parseInt(sample.css('height')) + parseInt(sample.css('margin'));
                 polediv.css({'width': samplesize * dimensions, 'height': samplesize * dimensions});
+
+            }
+            viewer.addUser = function(user) {
+                users.push(user);
+                var usr = '<div class="userpanel u' + user.id + '"><table class="topinfo"><tr>';
+                usr += '<td class="userpic u' + user.id + '"><div class="tactris-block active"></div></td><td class="stats">';
+                usr += '<div>' + user.name + '</div><div class="score u' + user.id + '">Score: <span>' + user.score + '</span></div></td></tr></table>';
+                usr += '<div class="next next0 u' + user.id + '"></div><div class="next next1 u' + user.id + '"></div></div></div>';
+                $(usr).appendTo(userpanel);
+                user.preview = [];
+                var curentdiv = [viewport.find('.next0.u' + user.id), viewport.find('.next1.u' + user.id)];
+                for (var a = 0; a < 2; a++) {
+                    var nxt = {figure: user.currents[a].figure};
+                    user.preview.push(nxt);
+                    nxt.fig = [];
+                    var figurecontainer = curentdiv[a].html('');
+                    for (var i in nxt.figure) {
+                        var fo = {
+                            x: nxt.figure[i].x,
+                            y: nxt.figure[i].y,
+                            stage: 'empty',
+                            div: newBlock(figurecontainer),
+                            setState: function(state) {
+                                if (state != this.state) {
+                                    this.state = state;
+                                    this.div.go(state);
+                                }
+                            }
+                        }
+                        nxt.fig.push(fo);
+                        fo.div.setTo(fo);
+                        nxt.fig[i].setState('active');
+                    }
+                }
+                // }
+            }
+            viewer.setUserStatus = function(data) {
+                for (var u in users) {
+                    if (users[u].id === data.id) {
+
+                        var opacity = 1;
+                        if (data.blur) {
+                            opacity = 0.3;
+                        }
+                        $('.userpanel.u' + users[u].id).fadeTo("slow", opacity, function() {
+                            // Animation complete.
+                        });
+                    }
+                }
+            }
+            viewer.removeUser = function(user) {
+                console.log(user);
+                for (var u in users) {
+                    if (users[u].id === user.id) {
+                        users.splice(u, 1);
+                    }
+                }
+
+                $('.userpanel.u' + user.id).remove();
 
             }
             viewer.showNewUser = function(name, callback) {
@@ -311,12 +385,39 @@ var TACTRIS = (function(_t) {
                     viewer.showLogin();
                 });
             }
-            viewer.clearPole = function() {
-                for (j = 0; j < pole.length; j++) {
-                    for (i = 0; i < pole.length; i++) {
-                        pole[j][i].setState('empty');
+            viewer.showGameOver = function(data) {
+                $('#gameover').removeClass('hide');
+                $('#gameover').html('<div><h2>О, как внезапно кончилась игра</h2></div><div id="summary"></div>');
+                for (var u in data.users) {
+                    $('<div>' + data.users[u].name + '</div>').appendTo($('#summary'));
+                    $('<div>Score' + data.users[u].score + '</div>').appendTo($('#summary'));
+                    $('<div>Hiscore:' + data.users[u].hiscore + '</div><br>').appendTo($('#summary'));
+                }
+                $('<div id="replay">Еще разок?</div>').appendTo($('#gameover'));
+                $('#replay').click(function() {
+                    viewer.clearPole();
+                });
+
+            }
+            viewer.fillPole = function(data) {
+                for (j = 0; j < data.pole.length; j++) {
+                    for (i = 0; i < data.pole.length; i++) {
+                        var block = pole[j][i];
+                        if (data.pole[j][i] === 1) {
+                            block.setState('placed');
+                        }
+                        if (data.pole[j][i] === 0) {
+                            block.setState('empty');
+                        }
+                        block.div.setTo(block);
                     }
                 }
+            }
+            viewer.clearPole = function() {
+                $('#gameover').addClass('hide');
+                _t.client.syncState(function(data) {
+                    viewer.fillPole(data);
+                })
             }
 
 
@@ -327,11 +428,16 @@ var TACTRIS = (function(_t) {
             var socket = io();
 
             socket.on('connect', function(data) {
-
                 _t.viewer.showLogin(data);
                 if (debug) {
                     _t.client.login('asdasd');
                 }
+            });
+            socket.on('newuser', function(data) {
+                _t.viewer.addUser(data);
+            });
+            socket.on('deluser', function(data) {
+                _t.viewer.removeUser(data);
             });
             socket.on('update', function(data) {
                 for (var d in data) {
@@ -346,21 +452,30 @@ var TACTRIS = (function(_t) {
                 }
             });
             socket.on('playerupdate', function(data) {
-                if (data.userid == user._id) {
-                    if (data.newnext) {
-                        _t.viewer.showNext(data.newnext);
-                    }
-                    if (data.exp){
-                        _t.viewer.updateUser(data);
-                    }
+
+                if (data.newnext) {
+                    _t.viewer.showNext(data);
                 }
+                if (data.score) {
+                    _t.viewer.updateUser(data);
+                }
+
             });
 
-            socket.on('gameover', function() {
-                _t.viewer.clearPole();
+            socket.on('gameover', function(data) {
+                console.log('game over');
+                console.log(data);
+                _t.viewer.showGameOver(data, function() {
+                    _t.viewer.clearPole();
+                });
+
             });
             socket.on('outlines', function(data) {
                 _t.viewer.cleanLines(data);
+
+            });
+            socket.on('userblur', function(data) {
+                _t.viewer.setUserStatus(data);
 
             });
             socket.on('connect_error', function(data) {
@@ -374,8 +489,8 @@ var TACTRIS = (function(_t) {
 
             var client = {};
             var getgame = function(type) {
-                var dt = {gt: 'open'};
-
+                var dt = {gt: type};
+                _t.viewer.showProgress('Сейчас мы найдем подходящую игру...');
                 socket.emit('getgame', dt, function(data) {
                     console.log('gameinfo', data);
                     if (data.pole.length) {
@@ -385,7 +500,6 @@ var TACTRIS = (function(_t) {
                 });
             }
             var processlogin = function(data) {
-                console.log('login result - ', data);
                 if (data.newuser) {
                     _t.viewer.showNewUser(data.newuser, function(name) {
                         console.log(name);
@@ -397,17 +511,34 @@ var TACTRIS = (function(_t) {
                 }
 
                 if (data.user) {
-                    console.log(data.user);
+                    console.log(data);
                     user = data.user;
-                    _t.viewer.showProgress('Привет, ' + data.user.name + '! <br> Сейчас мы найдем подходящую игру...');
-                    getgame();
+                    _t.viewer.showGreating({name: data.user.name});
+                    // _t.viewer.showProgress('Привет, ' + data.user.name + '! <br> Сейчас мы найдем подходящую игру...');
+                    // getgame();
                 }
             }
+            client.getGame = function(mode) {//TODO rewrite to single function
+                getgame(mode);
+            }
+            client.syncState = function(callback) {//TODO rewrite to single function
+                socket.emit('syncstate', function(data) {
+                    callback(data);
+                })
+            }
+            client.getSystemInfo = function() {
+                socket.emit('systeminfo', function(data) {
+                    console.log(data)
+                })
+
+            }
+
             client.sendPick = function(block) {
                 var blk = {
                     x: block.x,
                     y: block.y,
                     state: block.state
+                    //TODO state optimize
                 }
                 socket.emit('pick', blk, function(data) {
                     console.log(data);
@@ -418,6 +549,9 @@ var TACTRIS = (function(_t) {
                     console.log(data);
                 });
             }
+            client.sendBlur = function() {
+                socket.emit('blur');
+            }
             client.login = function(token) {
                 _t.viewer.showProgress('Авторизуем...');
                 socket.emit('login', {t: token}, processlogin);
@@ -425,6 +559,9 @@ var TACTRIS = (function(_t) {
 
             return client;
         }());
+
+
+        $($('.loginbutton')[0]).click();
 
     });
 

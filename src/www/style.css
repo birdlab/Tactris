@@ -17,12 +17,55 @@ html, body {
     user-select: none;
 }
 
+@font-face {
+    font-family: 'VirtualDJ';
+    src: url('vdj/VirtualDJ.eot?#iefix') format('embedded-opentype'), url('vdj/VirtualDJ.woff') format('woff'), url('vdj/VirtualDJ.ttf') format('truetype'), url('vdj/VirtualDJ.svg#VirtualDJ') format('svg');
+    font-weight: normal;
+    font-style: normal;
+}
+
+.uiblock {
+
+    /*    display: table-cell; */
+    /* width: 200px; */
+    padding: 20px;
+    margin: 20px;
+    cursor: pointer;
+    max-width: 120px;
+    /* height: 200px; */
+    float: left;
+    text-align: center;
+    color: #333;
+    background: #ccc;
+
+}
+
+.uiblock:hover {
+    background: #fff;
+}
+
 .hide {
     display: none !important;
 }
 
 small {
     font-size: 8pt;
+}
+
+#summary {
+    font-size: 17px;
+}
+
+#replay {
+    padding: 20px;
+    background-color: rgba(250, 250, 250, 0.4);
+    cursor: pointer;
+    color: #fff;
+}
+
+#replay:hover {
+    background: #fff;
+    color: #333;
 }
 
 #start {
@@ -33,7 +76,14 @@ small {
 
 #start .inside {
     display: inline-block;
-    max-width: 300pt;
+    max-width: 500pt;
+}
+
+#disclaimer {
+    position: absolute;
+    padding: 20px;
+    text-align: center;
+    width: 100%;
 }
 
 #newusername {
@@ -68,6 +118,37 @@ small {
     position: relative;
 }
 
+#gamecontent.shakex {
+    top: 1px;
+}
+
+#gamecontent.shakey {
+    left: 1px;
+}
+
+#gamecontent.shakexup {
+    top: -1px;
+}
+
+#gamecontent.shakeyup {
+    left: -1px;
+}
+
+#gamecontent .userpanel {
+    padding-top: 1px;
+    width: 250px;
+    height: 250px;
+    background: #222222;
+    text-align: left;
+}
+
+.userpic .tactris-block {
+    width: 50px;
+    height: 50px;
+    top: 15px;
+    left: 15px;
+}
+
 #pole {
     overflow: hidden;
     float: left;
@@ -82,7 +163,6 @@ small {
 }
 
 .sidebar {
-    width: 250px;
     float: left;
     position: relative;
 }
@@ -92,13 +172,10 @@ small {
 
 }
 
-.insideuserpanel {
-    margin-top: 100px;
-}
-
 .topinfo .stats {
-    padding: 15px;
-    text-align: center;
+    padding-left: 80px;
+    padding-top: 15px;
+    padding-bottom: 35px;
 }
 
 .sidebar span {
@@ -141,7 +218,7 @@ small {
 }
 
 .next0 {
-    left: 20px;
+    left: 15px;
 }
 
 .next1 {
@@ -173,23 +250,42 @@ small {
 #gameover {
     position: absolute;
     left: 0px;
-    top: 101px;
-    height: 298px;
+    /* top: 101px; */
+    height: 500px;
     width: 500px;
-    font-size: 35px;
+    font-size: 24px;
     background-color: rgba(0, 0, 0, 0.5);
-    display: none;
-
 }
 
 a {
     color: #aaddff;
 }
 
-#actions {
-    padding: 15px;
+.uibutton {
+    box-shadow: 0px 0px 25px 0px rgba(150, 200, 255, 0.7);
+    background-color: #ccc;
+    overflow: hidden;
+    text-align: center;
 }
 
-#state {
-    height: 150px;
+#menubar {
+    position: absolute;
+    top: -50px;
+    height: 50px;
+    width: 500px;
+    text-align: left;
+}
+
+#menubar .logo {
+    font-family: 'VirtualDJ' !important;
+    padding: 16px;
+    font-size: 24px;
+}
+
+.uibutton:hover {
+    background-color: #fff;
+}
+
+.uibutton.leaderboard {
+    content: url(http://img-fotki.yandex.ru/get/5413/5091629.67/0_5ba12_81d03a82_XS.png);
 }

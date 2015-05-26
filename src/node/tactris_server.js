@@ -5,12 +5,42 @@ var db = require('./db.js');
 var User = require('./user.js').User;
 //var PGame = require('./personalgame.js').Game;
 var SharedGame = require('./sharedgame.js').Game;
+var opengames = [];
 var games = [];
 var users = [];
 var debug = false;
+var waitforshared = [];
 
+var systemdata = function() {
+
+    var data = {
+        'users': [],
+        'games': games.length,
+        'opengames': opengames.length
+    };
+    for (var u in users) {
+        data.users.push(users[u].minimize());
+    }
+    return data;
+}
+
+var sortByActivity = function(mass) {
+    return mass.sort(function(a, b) {
+        return b.lastActive-a.lastActive;
+    });
+}
 
 var bindcommands = function(socket) {
+    socket.on('blur', function() {
+        if (socket.currentGame) {
+            socket.currentGame.blurUser(socket);
+        }
+    })
+    socket.on('syncstate', function(callback) {
+        if (socket.currentGame) {
+            socket.currentGame.getPoleState(callback);
+        }
+    });
     socket.on('insert', function(callback) {
         if (socket.currentGame) {
             socket.currentGame.insertFigure(socket, callback);
@@ -22,27 +52,49 @@ var bindcommands = function(socket) {
         }
     });
     socket.on('getgame', function(data, callback) {
+        console.log(data);
         var createshared = function() {
             var game = new SharedGame({dim: 10});
+            opengames.push(game);
+            game.addPlayer(socket, callback);
+            for (var p in waitforshared) {
+                if (game.sockets.length < 4) {
+                    var playerdata = waitforshared.unshift();
+                    game.addPlayer(playerdata.so, playerdata.call);
+                }
+            }
+        }
+        var createpersonal = function() {
+            var game = new SharedGame({dim: 10, presonal: true});
             games.push(game);
             game.addPlayer(socket, callback);
         }
-
+        if (data.gt == 'personal') {
+            createpersonal();
+        }
+        if (data.gt == 'newopen') {
+            createshared();
+        }
         if (data.gt == 'open') {
-            if (games.length) {
-                for (var g in games) {
-                    if (games[g].users.length < 4) {
-                        games[g].addPlayer(socket, callback);
-                        break;
-                    } else {
-                        createshared();
+            var finded = false;
+            if (opengames.length) {
+                var freeslots = [];
+                for (var g in opengames) {
+                    if (opengames[g].sockets.length < 4) {
+                        freeslots.push(opengames[g]);
                     }
-
                 }
-
-            } else {
-                createshared();
+                if (freeslots.length) {
+                    freeslots = sortByActivity(freeslots);
+                    freeslots[0].addPlayer(socket, callback);
+                    finded = true;
+                }
             }
+            if (!finded) {
+                createshared();
+                // waitforshared.push({so: socket, call: callback});
+            }
+
         }
     });
 
@@ -52,7 +104,7 @@ var removeUser = function(user) {
     setTimeout(function() {
         if (user) {
             for (var u in users) {
-                if (user.dbdata._id.toString() ===  users[u].dbdata._id.toString()) {
+                if (user.dbdata._id.toString() === users[u].dbdata._id.toString()) {
                     users.splice(u, 1);
                 }
             }
@@ -64,6 +116,9 @@ io.on('connection', function(socket) {
 
     console.log('socket', socket.id, 'connected');
 
+    socket.on('systeminfo', function(callback) {
+        callback(systemdata());
+    });
 
     socket.on('login', function(data, callback) {
         if (data.t) {
@@ -114,22 +169,10 @@ io.on('connection', function(socket) {
                                             callback({newuser: parsedData.first_name + ' ' + parsedData.last_name});
                                         }
                                         if (data.user) {
-
-                                            //   var finded = false;
-                                            //   for (var u in users) {
-                                            //      if (data.user.minimize() == users[u].minimize()) {
-                                            //          data.user = users[u];
-                                            //           finded = true;
-                                            //           break;
-                                            //      }
-                                            // }
-                                            // if (!finded) {
-                                           // users.push(socket.user);
-                                            //  }
                                             socket.user = data.user;
-
+                                            users.push(socket.user);
                                             bindcommands(socket);
-                                            callback({user: socket.user.minimize()});
+                                            callback({user: socket.user.minimize(), systemdata: systemdata()});
                                         }
                                     }
                                 });
@@ -157,6 +200,22 @@ io.on('connection', function(socket) {
         if (socket.currentGame) {
             removeUser(socket.user);
             socket.currentGame.removePlayer(socket, function() {
+                if (socket.currentGame.sockets.length < 1) {
+                    if (socket.currentGame.personal) {
+                        for (var g in games) {
+                            if (games[g] == socket.currentGame) {
+                                games.splice(g, 1);
+                            }
+                        }
+                    } else {
+                        for (var g in opengames) {
+                            if (opengames[g] == socket.currentGame) {
+                                opengames.splice(g, 1);
+                            }
+                        }
+
+                    }
+                }
             });
         }
     });

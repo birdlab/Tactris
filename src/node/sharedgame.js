@@ -347,12 +347,15 @@ var refs = refs = [
 
 function Game(data) {
     this.dimension = 10;
+    if (data.personal) {
+        this.personal = true;
+    }
     if (data.dim) {
         this.dimension = data.dim;
     }
     this.pole = [];
-    this.users = [];
     this.sockets = [];
+    this.slots = [];
     this.changes = [];
     this.gameId = 'shared' + Math.round(Math.random() * 100000);
     for (var y = 0; y < this.dimension; y++) {
@@ -364,35 +367,70 @@ function Game(data) {
     }
     this.readytosend = true;
     this.updaterate = Math.round(1000 / 12);
+    this.lastmoved = null;
+    this.lastActive=new Date();
 }
 
+Game.prototype.getPoleState = function(callback) {
+    callback({'pole': this.pole});
+
+}
+
+Game.prototype.getSlot = function() {
+    console.log('find slot')
+    var find = false;
+    for (var s in this.slots) {
+        if (this.slots[s].free === true) {
+            console.log(this.slots[s]);
+            find = this.slots[s];
+            break;
+        }
+    }
+    if (!find) {
+        if (this.slots.length < 4) {
+            var slot = {free: true, currents: []}
+            for (var a = 0; a < 2; a++) {
+                var nxt = {};
+                slot.currents.push(nxt);
+                setnext(nxt, slot.currents);
+            }
+            slot.score = 0;
+            this.slots.push(slot);
+            return slot;
+        }
+    } else {
+        return find;
+    }
+
+}
 
 Game.prototype.insertFigure = function(socket, callback) {
     if (socket.currentGame && socket.currentGame == this) {
         var valid = true;
-
-
         if (socket.figure.length == 4 && this.checkFigure(socket)) {
             for (var f in socket.figure) {
                 var sf = socket.figure[f];
                 sf.state = 'placed';
-                this.pole[sf.y][sf.x] = 2;
+                this.pole[sf.y][sf.x] = 1;
             }
             this.emit('placed', socket.figure);
             socket.figure = [];
-            socket.score+=4;
+            socket.score += 4;
             setnext(socket.currents[socket.checkindex], socket.currents);
             var nnd = {
                 newnext: {
                     figure: socket.currents[socket.checkindex].figure,
                     index: socket.checkindex},
                 exp: socket.user.addXp(4),
-                score:socket.score,
+                score: socket.score,
                 userid: socket.user.dbdata._id.toString()
 
             }
+            this.lastmoved = socket;
 
             this.emit('playerupdate', nnd);
+
+            this.lastActive=new Date();
 
             this.checkLines();
 
@@ -405,12 +443,25 @@ Game.prototype.insertFigure = function(socket, callback) {
                         line.push(0);
                     }
                 }
-
+                var users = [];
                 for (var s in this.sockets) {
                     var so = this.sockets[s];
+                    if (so.user.dbdata.hiscore < so.score) {
+                        so.user.dbdata.hiscore = so.score;
+                    }
+                    so.user.dbdata.totalgames++;
+                    users.push({
+                        id: so.user.dbdata._id.toString(),
+                        name: so.user.dbdata.name,
+                        score: so.score,
+                        hiscore: so.user.dbdata.hiscore
+                    })
+                    so.user.save();
+                    so.score = 0;
                     so.figure = [];
                 }
-                this.emit('gameover');
+
+                this.emit('gameover', {'users': users});
             }
         }
 
@@ -419,27 +470,29 @@ Game.prototype.insertFigure = function(socket, callback) {
 
 Game.prototype.checkEnd = function() {
     for (var s in this.sockets) {
-        var curents = this.sockets[s].currents;
-        for (var f in curents) {
-            var curent = curents[f].figure;
-            for (var x in this.pole) {
-                for (var y in this.pole[x]) {
-                    var counter = 0;
-                    for (var i in curent) {
-                        var cx = curent[i].y;
-                        var cy = curent[i].x;
-                        var tx = parseInt(y);
-                        var ty = parseInt(x);
-                        if (cx + tx < this.dimension && cy + ty < this.dimension) {
-                            if (this.pole[cx + tx][cy + ty] != 2) {
-                                counter += 1;
+        if (!this.sockets[s].blured) {
+            var curents = this.sockets[s].currents;
+            for (var f in curents) {
+                var curent = curents[f].figure;
+                for (var x in this.pole) {
+                    for (var y in this.pole[x]) {
+                        var counter = 0;
+                        for (var i in curent) {
+                            var cx = curent[i].y;
+                            var cy = curent[i].x;
+                            var tx = parseInt(y);
+                            var ty = parseInt(x);
+                            if (cx + tx < this.dimension && cy + ty < this.dimension) {
+                                if (this.pole[cx + tx][cy + ty] != 1) {
+                                    counter += 1;
+                                }
                             }
                         }
-                    }
-                    if (counter === 4) {
-                        return false;
-                    }
+                        if (counter === 4) {
+                            return false;
+                        }
 
+                    }
                 }
             }
         }
@@ -450,7 +503,6 @@ Game.prototype.checkEnd = function() {
 Game.prototype.rebuildfigures = function(line) {
     console.log(line);
     for (var s in this.sockets) {
-        console.log('before - ', this.sockets[s].figure);
         for (var f in this.sockets[s].figure) {
             if (line.line > 4) {
                 if (line.dir == 'y' && this.sockets[s].figure[f].x > 4) {
@@ -471,7 +523,6 @@ Game.prototype.rebuildfigures = function(line) {
 
             }
         }
-        console.log('after - ', this.sockets[s].figure);
     }
 }
 
@@ -483,10 +534,10 @@ Game.prototype.checkLines = function() {
         var ycounter = 0;
 
         for (var i in this.pole[j]) {
-            if (this.pole[j][i] == 2) {
+            if (this.pole[j][i] == 1) {
                 xcounter++;
             }
-            if (this.pole[i][j] == 2) {
+            if (this.pole[i][j] == 1) {
                 ycounter++;
             }
         }
@@ -500,7 +551,19 @@ Game.prototype.checkLines = function() {
     console.log(this.pole);
     if (outlines.length) {
         console.log(outlines);
+        this.broadcast();
         this.emit('outlines', outlines);
+        var socket = this.lastmoved;
+        var addscore = 10 * (outlines.length * outlines.length);
+        socket.score += addscore;
+        var nnd = {
+            exp: socket.user.addXp(addscore),
+            score: socket.score,
+            userid: socket.user.dbdata._id.toString()
+
+        }
+
+        this.emit('playerupdate', nnd);
 
     }
     for (var out in outlines) {
@@ -591,24 +654,21 @@ Game.prototype.checkFigure = function(socket) {
 
 Game.prototype.pickPixel = function(pixel, socket) {
     if (socket.currentGame && socket.currentGame == this) {
-
-        if (this.pole[pixel.y][pixel.x] > 1) {
+        if (socket.blured) {
+            socket.blured = false;
+            this.emit('userblur', {id: socket.user.dbdata._id.toString(), blur: socket.blured});
+        }
+        if (this.pole[pixel.y][pixel.x] > 0) {
             return;
         }
-
         for (var f in socket.figure) {
-            var sp = socket.figure[f];
-            if ((sp.x == pixel.x) && (sp.y == pixel.y)) {
+            if ((socket.figure[f].x == pixel.x) && (socket.figure[f].y == pixel.y)) {
                 return;
             }
         }
-
         socket.figure.push(pixel);
-
         this.broadcast(pixel);
         this.checkFigure(socket);
-
-
     }
 }
 
@@ -623,15 +683,11 @@ Game.prototype.broadcast = function(change) {
     if (change) {
         this.changes.push(change);
         if (change.state == 'placed') {
-            this.pole[change.y][change.x] = 2;
-        }
-        if (change.state == 'active') {
             this.pole[change.y][change.x] = 1;
-        }
-        if (change.state == 'empty') {
+        } else {
             this.pole[change.y][change.x] = 0;
         }
-        this.pole[change.y][change.x].state = change.state;
+        //  this.pole[change.y][change.x].state = change.state;
     }
     var gm = this;
     if (this.changes.length) {
@@ -651,61 +707,79 @@ Game.prototype.broadcast = function(change) {
 
 
 Game.prototype.addPlayer = function(socket, callback) {
-
+    console.log('adding player');
+    var slot = this.getSlot();
+    slot.socket = socket;
+    slot.free = false;
     this.sockets.push(socket);
-    this.users.push(socket.user);
-
     socket.currentGame = this;
-    socket.score=0;
+    socket.score = slot.score;
     socket.figure = [];
-    socket.currents = [];
-    for (var a = 0; a < 2; a++) {
-        var nxt = {};
-        socket.currents.push(nxt);
-        setnext(nxt, socket.currents);
-    }
-    console.log(socket.currents[0].figure);
+    socket.currents = slot.currents;
+    socket.blured = false;
     var initData = {};
     initData.users = [];
-    for (var u in this.users){
-        initData.users.push(this.users[u].minimize());
+    for (var u in this.sockets) {
+        var userdata = {
+            id: this.sockets[u].user.dbdata._id.toString(),
+            name: this.sockets[u].user.dbdata.name,
+            score: this.sockets[u].score,
+            currents: this.sockets[u].currents
+        }
+        initData.users.push(userdata);
     }
-
-
-
-
-    initData.currents = [socket.currents[0].figure, socket.currents[1].figure];
     initData.gameid = this.gameId;
     initData.pole = this.pole;
+    var userdata = {
+        id: socket.user.dbdata._id.toString(),
+        name: socket.user.dbdata.name,
+        score: socket.score,
+        currents: socket.currents
+    }
+    this.emit('newuser', userdata);
 
     callback(initData);
 }
 
 
 Game.prototype.removePlayer = function(socket, callback) {
-    for (var u in this.users) {
-        var user = this.users[u];
-        if (user == socket.user) {
-            this.users.splice(u, 1);
-            break;
+    console.log('remove user from game');
+    for (var ss in this.slots) {
+        if (this.slots[ss].socket == socket) {
+            this.slots[ss].currents = socket.currents;
+            this.slots[ss].score = socket.score;
+            this.slots[ss].free = true;
+            console.log(this.slots[ss]);
         }
+    }
+    for (var f in socket.figure) {
+        var sf = socket.figure[f];
+        sf.state = 'empty';
+        this.broadcast(sf);
     }
     for (var s in this.sockets) {
         var sk = this.sockets[s];
         if (sk == socket) {
-            for (var f in socket.figure) {
-                var sf = socket.figure[f];
-                sf.state = 'empty';
-                this.broadcast(sf);
-            }
             this.sockets.splice(s, 1);
             break;
         }
     }
+    socket.blured = false;
     socket.user.save();
-    this.emit('deluser', {id:socket.user.dbdata._id.toString()} );
+    this.emit('deluser', {id: socket.user.dbdata._id.toString()});
     this.checkLines();
     callback();
+}
+
+Game.prototype.blurUser = function(socket) {
+    console.log(socket.user.dbdata.name + ' blured');
+    socket.blured = true;
+    for (var f in socket.figure) {
+        var sf = socket.figure[f];
+        sf.state = 'empty';
+        this.broadcast(sf);
+    }
+    this.emit('userblur', {id: socket.user.dbdata._id.toString(), blur: socket.blured});
 }
 Game.prototype.save = function() {
     console.log('saving', this.dbdata.name);
@@ -716,6 +790,7 @@ Game.prototype.save = function() {
 }
 
 exports.Game = Game;
+
 
 function setnext(nextfigure, curents, index) {
     if (index) {
