@@ -560,9 +560,6 @@ var TACTRIS = (function(_t) {
             return client;
         }());
 
-
-        $($('.loginbutton')[0]).click();
-
     });
 
     return _t;
