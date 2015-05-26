@@ -31,26 +31,6 @@ var TACTRIS = (function(_t) {
 
          */
 
-        var shake = function(dir, index) {
-            var cls = 'shakey';
-            if (dir == 'x') {
-                cls = 'shakex';
-            }
-            if (index > 4) {
-                cls += 'up'
-            }
-            var val = setInterval(function() {
-                if (viewport.hasClass(cls)) {
-                    viewport.removeClass(cls);
-                } else {
-                    viewport.addClass(cls);
-                }
-            }, 40);
-            setTimeout(function() {
-                clearInterval(val)
-            }, 300);
-
-        }
 
         _t.viewer = (function() {
 
