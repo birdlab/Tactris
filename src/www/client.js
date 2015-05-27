@@ -129,7 +129,6 @@ var TACTRIS = (function(_t) {
                     duration: 400,
                     progress: function(p1, p2) {
                         scoreval.html(Math.round(Number(currentscore) - increment * p2));
-                        console.log(increment * p2);
                     }
 
                 });
@@ -389,8 +388,8 @@ var TACTRIS = (function(_t) {
                 $('#gameover').html('<div><h2>О, как внезапно кончилась игра</h2></div><div id="summary"></div>');
                 for (var u in data.users) {
                     $('<div>' + data.users[u].name + '</div>').appendTo($('#summary'));
-                    $('<div>Score' + data.users[u].score + '</div>').appendTo($('#summary'));
-                    $('<div>Hiscore:' + data.users[u].hiscore + '</div><br>').appendTo($('#summary'));
+                    $('<div>Score: ' + data.users[u].score + '</div>').appendTo($('#summary'));
+                    $('<div>Hiscore: ' + data.users[u].hiscore + '</div><br>').appendTo($('#summary'));
                 }
                 $('<div id="replay">Еще разок?</div>').appendTo($('#gameover'));
                 $('#replay').click(function() {
@@ -414,6 +413,7 @@ var TACTRIS = (function(_t) {
             }
             viewer.clearPole = function() {
                 $('#gameover').addClass('hide');
+                $('.userpanel .score span.value').html('0');
                 _t.client.syncState(function(data) {
                     viewer.fillPole(data);
                 })
