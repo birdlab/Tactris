@@ -104,7 +104,7 @@ var removeUser = function(user) {
     setTimeout(function() {
         if (user) {
             for (var u in users) {
-                if (user.dbdata._id.toString() === users[u].dbdata._id.toString()) {
+                if (user == users[u]) {
                     users.splice(u, 1);
                 }
             }
@@ -154,7 +154,6 @@ io.on('connection', function(socket) {
                                                 if (data.n) {
                                                     parsedData.name = data.n;
                                                     db.createNewUser(parsedData, function(d) {
-                                                        // console.log('new user - ', d.user);
                                                         if (d.user) {
                                                             socket.user = d.user;
                                                             users.push(socket.user);

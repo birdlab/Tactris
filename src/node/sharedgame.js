@@ -349,6 +349,9 @@ function Game(data) {
     this.dimension = 10;
     if (data.personal) {
         this.personal = true;
+        console.log('start personal');
+    } else {
+        console.log('start open');
     }
     if (data.dim) {
         this.dimension = data.dim;
@@ -377,11 +380,9 @@ Game.prototype.getPoleState = function(callback) {
 }
 
 Game.prototype.getSlot = function() {
-    console.log('find slot')
     var find = false;
     for (var s in this.slots) {
         if (this.slots[s].free === true) {
-            console.log(this.slots[s]);
             find = this.slots[s];
             break;
         }
@@ -501,7 +502,6 @@ Game.prototype.checkEnd = function() {
 }
 
 Game.prototype.rebuildfigures = function(line) {
-    console.log(line);
     for (var s in this.sockets) {
         for (var f in this.sockets[s].figure) {
             if (line.line > 4) {
@@ -548,9 +548,7 @@ Game.prototype.checkLines = function() {
             outlines.push({dir: 'y', line: j});
         }
     }
-    console.log(this.pole);
     if (outlines.length) {
-        console.log(outlines);
         this.broadcast();
         this.emit('outlines', outlines);
         var socket = this.lastmoved;
@@ -709,7 +707,7 @@ Game.prototype.broadcast = function(change) {
 
 
 Game.prototype.addPlayer = function(socket, callback) {
-    console.log('adding player');
+    console.log(socket.user.dbdata.name + ' enter game');
     var slot = this.getSlot();
     slot.socket = socket;
     slot.free = false;
@@ -726,7 +724,8 @@ Game.prototype.addPlayer = function(socket, callback) {
             id: this.sockets[u].user.dbdata._id.toString(),
             name: this.sockets[u].user.dbdata.name,
             score: this.sockets[u].score,
-            currents: this.sockets[u].currents
+            currents: this.sockets[u].currents,
+            blured: this.sockets[u].blured
         }
         initData.users.push(userdata);
     }
@@ -745,13 +744,12 @@ Game.prototype.addPlayer = function(socket, callback) {
 
 
 Game.prototype.removePlayer = function(socket, callback) {
-    console.log('remove user from game');
+    console.log('remove ' + socket.user.dbdata.name + ' from game');
     for (var ss in this.slots) {
         if (this.slots[ss].socket == socket) {
             this.slots[ss].currents = socket.currents;
             this.slots[ss].score = socket.score;
             this.slots[ss].free = true;
-            console.log(this.slots[ss]);
         }
     }
     for (var f in socket.figure) {
