@@ -3,9 +3,9 @@
 <head>
     <title>Tactris</title>
 
-    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
-    <meta http-equiv="Pragma" content="no-cache" />
-    <meta http-equiv="Expires" content="0" />
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
+    <meta http-equiv="Pragma" content="no-cache"/>
+    <meta http-equiv="Expires" content="0"/>
 
     <meta http-equiv="content-type" content="text/html; charset=utf-8">
     <link rel="stylesheet" href="style.css">
@@ -32,7 +32,13 @@
 
 </head>
 <body>
-<div id="disclaimer"><small>Теперь новые игроки распределяются по наиболее активным комнатам. <br>Фигуры полупрозрачного пользователя не учитываются.<br>Более стабильная одновременная игра<br><b>Скоро:</b> индивидуальные цвета пользователей, обработка звуковой пинг "заснувшего", внутриигровой чат, профиль со статистикой,<br> таблицы рекородов, дуэли 1x1, рассылка приглашений в совместную игру для друзей</small></div>
+<div id="disclaimer">
+    <small>Теперь новые игроки распределяются по наиболее активным комнатам. <br>Фигуры полупрозрачного пользователя не
+        учитываются.<br>Более стабильная одновременная игра<br><b>Скоро:</b> индивидуальные цвета пользователей,
+        обработка звуковой пинг "заснувшего", внутриигровой чат, профиль со статистикой,<br> таблицы рекородов, дуэли
+        1x1, рассылка приглашений в совместную игру для друзей
+    </small>
+</div>
 <div id="start">
     <div class='inside'>
     </div>
@@ -40,15 +46,22 @@
 <div id='tactris' class="hide">
     <div class='forcenter'>
         <div id='gamecontent'>
-            <div id="pole"></div>
-            <div id="gameover" class="hide"></div>
             <div id="menubar">
                 <div class="logo">TACTRIS</div>
+                <div class="buttons">
+                    <div class="uibutton leaderboard"></div>
+                </div>
             </div>
+            <div class="sidebar leftsidebar"></div>
+            <div id="pole"></div>
+            <div id="gameover" class="hide infopanel"></div>
+            <div class="sidebar rigthsidebar"></div>
+
         </div>
     </div>
 </div>
 <script src="//ulogin.ru/js/ulogin.js"></script>
+<link href="http://fonts.googleapis.com/css?family=Open+Sans:300italic,300,700,400&amp;subset=latin,cyrillic-ext" rel="stylesheet" type="text/css">
 </body>
 
 </html>

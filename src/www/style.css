@@ -1,10 +1,10 @@
 html, body {
     width: 100%;
-    background-color: #333333;
+    background-color: #3d3d3d;
     margin: 0;
     padding: 0;
-    color: #e5e5e5;
-    font-family: Arial, sans-serif;
+    color: #efefef;
+    font-family: 'Open Sans', sans-serif;
     width: 100%;
     height: 100%;
     display: table;
@@ -112,6 +112,7 @@ small {
 
 .forcenter {
     display: inline-block;
+    padding-top: 51px;
 }
 
 #gamecontent {
@@ -135,18 +136,37 @@ small {
 }
 
 #gamecontent .userpanel {
-    padding-top: 1px;
-    width: 250px;
-    height: 250px;
+    margin: 1px;
+    width: 249px;
+    height: 249px;
     background: #222222;
     text-align: left;
 }
 
+.userpic {
+    width: 68px;
+}
+
 .userpic .tactris-block {
-    width: 50px;
-    height: 50px;
-    top: 15px;
-    left: 15px;
+    width: 49px;
+    height: 49px;
+    position: relative;
+    left: 12px;
+}
+
+.score {
+    font-family: 'VirtualDJ' !important;
+    font-size: 8px;
+    line-height: 1.3;
+    text-indent: 2pt;
+}
+
+.score span {
+    font-size: 24px;
+}
+
+.score span.increment {
+    opacity: 0;
 }
 
 #pole {
@@ -162,20 +182,27 @@ small {
     user-select: none;
 }
 
-.sidebar {
-    float: left;
-    position: relative;
-}
-
 .topinfo {
     width: 100%;
 
 }
 
 .topinfo .stats {
-    padding-left: 80px;
-    padding-top: 15px;
-    padding-bottom: 35px;
+    padding-top: 12px;
+    padding-bottom: 12px;
+    font-size: 18px;
+}
+
+.sidebar {
+    position: relative;
+}
+
+.rigthsidebar {
+    float: left;
+}
+
+.leftsidebar {
+    float: left;
 }
 
 .sidebar span {
@@ -199,7 +226,7 @@ small {
 }
 
 #pole {
-
+    position: relative;
 }
 
 .loginbutton {
@@ -247,7 +274,19 @@ small {
     background-color: #ff6666;
 }
 
+.infopanel {
+    position: absolute;
+    left: 0px;
+    height: 500px;
+    width: 500px;
+    font-size: 24px;
+}
+
 #gameover {
+    background-color: rgba(0, 0, 0, 0.5);
+}
+
+#leaderboard {
     position: absolute;
     left: 0px;
     /* top: 101px; */
@@ -261,11 +300,21 @@ a {
     color: #aaddff;
 }
 
+.buttons {
+    position: inherit;
+    top: 0px;
+    right: 0px;
+}
+
 .uibutton {
-    box-shadow: 0px 0px 25px 0px rgba(150, 200, 255, 0.7);
     background-color: #ccc;
     overflow: hidden;
     text-align: center;
+    width: 49px;
+    height: 49px;
+    float: left;
+    margin-left: 1px;
+    cursor: pointer;
 }
 
 #menubar {
@@ -278,14 +327,15 @@ a {
 
 #menubar .logo {
     font-family: 'VirtualDJ' !important;
-    padding: 16px;
+    padding: 17px;
     font-size: 24px;
 }
 
 .uibutton:hover {
     background-color: #fff;
+    box-shadow: 0px 0px 25px 0px rgba(255, 255, 255, 0.70);
 }
 
 .uibutton.leaderboard {
-    content: url(http://img-fotki.yandex.ru/get/5413/5091629.67/0_5ba12_81d03a82_XS.png);
+    content: url(img/leaderboard2.png);
 }

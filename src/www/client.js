@@ -118,7 +118,21 @@ var TACTRIS = (function(_t) {
             }
 
             viewer.updateUser = function(data) {
-                $('.score.u' + data.userid + ' span').html(data.score);
+                var scoreval = $('.score.u' + data.userid + ' span.value');
+                var inc = $('.score.u' + data.userid + ' span.increment');
+                var currentscore = Number($('.score.u' + data.userid + ' span.value').html());
+                var increment = currentscore - data.score;
+
+
+                inc.html('+' + Math.abs(increment));
+                inc.css({opacity: "1"}).animate({opacity: "0"}, {
+                    duration: 400,
+                    progress: function(p1, p2) {
+                        scoreval.html(Math.round(Number(currentscore) - increment * p2));
+                        console.log(increment * p2);
+                    }
+
+                });
             }
             viewer.showNext = function(data) {
                 for (var u in users) {
@@ -286,7 +300,8 @@ var TACTRIS = (function(_t) {
                         }
                     }
                     users = [];
-                    userpanel = $('<div class="sidebar"></div>').appendTo(viewport);
+                    userpanel = $('.rigthsidebar');//.appendTo(viewport);
+                    userpanel2 = $('.leftsidebar');//.prependTo(viewport);
                     for (var u in data.users) {
                         viewer.addUser(data.users[u]);
                     }
@@ -301,9 +316,13 @@ var TACTRIS = (function(_t) {
                 users.push(user);
                 var usr = '<div class="userpanel u' + user.id + '"><table class="topinfo"><tr>';
                 usr += '<td class="userpic u' + user.id + '"><div class="tactris-block active"></div></td><td class="stats">';
-                usr += '<div>' + user.name + '</div><div class="score u' + user.id + '">Score: <span>' + user.score + '</span></div></td></tr></table>';
+                usr += '<div>' + user.name + '</div><div class="score u' + user.id + '">Score: <span class="value">' + user.score + '</span><span class="increment"></span></div></td></tr></table>';
                 usr += '<div class="next next0 u' + user.id + '"></div><div class="next next1 u' + user.id + '"></div></div></div>';
-                $(usr).appendTo(userpanel);
+                if (users.length > 2) {
+                    $(usr).appendTo(userpanel2);
+                } else {
+                    $(usr).appendTo(userpanel);
+                }
                 user.preview = [];
                 var curentdiv = [viewport.find('.next0.u' + user.id), viewport.find('.next1.u' + user.id)];
                 for (var a = 0; a < 2; a++) {
