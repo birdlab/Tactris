@@ -368,7 +368,7 @@ function Game(data) {
     this.readytosend = true;
     this.updaterate = Math.round(1000 / 12);
     this.lastmoved = null;
-    this.lastActive=new Date();
+    this.lastActive = new Date();
 }
 
 Game.prototype.getPoleState = function(callback) {
@@ -430,7 +430,7 @@ Game.prototype.insertFigure = function(socket, callback) {
 
             this.emit('playerupdate', nnd);
 
-            this.lastActive=new Date();
+            this.lastActive = new Date();
 
             this.checkLines();
 
@@ -644,8 +644,10 @@ Game.prototype.checkFigure = function(socket) {
             return true;
         } else {
             var ftd = socket.figure.shift();
-            ftd.state = 'empty';
-            this.broadcast(ftd);
+            if (this.pole[ftd.y][ftd.x] != 1) {
+                ftd.state = 'empty';
+                this.broadcast(ftd);
+            }
             return false;
         }
     }
