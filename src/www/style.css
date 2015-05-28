@@ -302,14 +302,18 @@ small {
     height: 50px;
 }
 
-/* нечетная строка таблицы класса stripy */
+#leaderboard table .me {
+    color: #000000;
+    background-color: #aaddff !important;
+}
+
 #leaderboard table tr:nth-child(2n+1) {
     background-color: rgba(255, 255, 255, 0.2);
 }
 
-/* четная строка таблицы класса stripy */
+
 #leaderboard table tr:nth-child(2n) {
-   /* background-color: rgba(255, 255, 255, 0.3); */
+    /* background-color: rgba(255, 255, 255, 0.3); */
 }
 
 #leaderboard .hiscore, #leaderboard .place {

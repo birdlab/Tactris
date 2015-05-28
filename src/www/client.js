@@ -448,8 +448,12 @@ var TACTRIS = (function(_t) {
                         for (var i in data) {
                             var index = Number(i) + 1;
                             data[i].name = data[i].name.replace(/<(?:.|\n)*?>/gm, '');
+                            var me = '';
+                            if (data[i]._id.toString() === user.id) {
+                                me = 'me'
+                            }
                             // list += '<div>' + data[i].name + '<span>' + data[i].hiscore + '</span></div>'
-                            list += '<tr><td class="place">' + index + '</td><td>' + data[i].name + '</td><td class="hiscore">' + data[i].hiscore + '</td></tr>';
+                            list += '<tr class="' + me + '"><td class="place">' + index + '</td><td>' + data[i].name + '</td><td class="hiscore">' + data[i].hiscore + '</td></tr>';
                         }
                         list += '</tbody></table></div>';
 
