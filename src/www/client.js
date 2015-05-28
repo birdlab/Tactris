@@ -312,6 +312,7 @@ var TACTRIS = (function(_t) {
                     userpanel2 = $('.leftsidebar');//.prependTo(viewport);
                     for (var u in data.users) {
                         viewer.addUser(data.users[u]);
+                        viewer.setUserStatus({id: data.users[u].id, blur: data.users[u].blured})
                     }
                 }
 
