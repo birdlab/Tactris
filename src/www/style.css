@@ -280,6 +280,7 @@ small {
     height: 500px;
     width: 500px;
     font-size: 24px;
+    z-index: 150;
 }
 
 #gameover {
@@ -287,13 +288,33 @@ small {
 }
 
 #leaderboard {
-    position: absolute;
-    left: 0px;
-    /* top: 101px; */
-    height: 500px;
-    width: 500px;
-    font-size: 24px;
+    font-size: 18px;
+    overflow-y: scroll;
     background-color: rgba(0, 0, 0, 0.5);
+}
+
+#leaderboard table {
+    width: 100%;
+    border-spacing: 0px;
+}
+
+#leaderboard table tr {
+    height: 50px;
+}
+
+/* нечетная строка таблицы класса stripy */
+#leaderboard table tr:nth-child(2n+1) {
+    background-color: rgba(255, 255, 255, 0.2);
+}
+
+/* четная строка таблицы класса stripy */
+#leaderboard table tr:nth-child(2n) {
+   /* background-color: rgba(255, 255, 255, 0.3); */
+}
+
+#leaderboard .hiscore, #leaderboard .place {
+    font-family: 'VirtualDJ';
+    font-size: 20px;
 }
 
 a {
@@ -339,3 +360,4 @@ a {
 .uibutton.leaderboard {
     content: url(img/leaderboard2.png);
 }
+

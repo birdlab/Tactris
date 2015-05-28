@@ -21,16 +21,40 @@ var systemdata = function() {
     for (var u in users) {
         data.users.push(users[u].minimize());
     }
+    //   db.getHiScorePlace({score:1000},function(data){console.log(data)});
+
     return data;
 }
 
 var sortByActivity = function(mass) {
     return mass.sort(function(a, b) {
-        return b.lastActive-a.lastActive;
+        if (a.sockets.length != b.sockets.length) {
+            return a.sockets.length - b.sockets.length;
+        } else {
+            return b.lastActive - a.lastActive;
+        }
     });
 }
 
 var bindcommands = function(socket) {
+    socket.on('shutdown', function(data) {
+        if (socket.user) {
+            if (socket.user.dbdata._id.toString() === "555e90116e88debb335b91cd") {
+                console.log('Рестарт сервера через 2 секунды');
+                if (data.reason) {
+                    console.log(data.reason);
+                }
+                setTimeout(function() {
+                    process.exit();
+                }, 2000);
+            }
+        }
+    })
+    socket.on('getleaderboard', function(data, callback) {
+        if (data.type) {
+            db.getLeaderboard({type: data.type}, callback);
+        }
+    })
     socket.on('blur', function() {
         if (socket.currentGame) {
             socket.currentGame.blurUser(socket);
@@ -65,7 +89,7 @@ var bindcommands = function(socket) {
             }
         }
         var createpersonal = function() {
-            var game = new SharedGame({dim: 10, presonal: true});
+            var game = new SharedGame({dim: 10, personal: true});
             games.push(game);
             game.addPlayer(socket, callback);
         }
@@ -196,8 +220,8 @@ io.on('connection', function(socket) {
 
 
     socket.on('disconnect', function() {
+        removeUser(socket.user);
         if (socket.currentGame) {
-            removeUser(socket.user);
             socket.currentGame.removePlayer(socket, function() {
                 if (socket.currentGame.sockets.length < 1) {
                     if (socket.currentGame.personal) {
@@ -207,9 +231,9 @@ io.on('connection', function(socket) {
                             }
                         }
                     } else {
-                        for (var g in opengames) {
-                            if (opengames[g] == socket.currentGame) {
-                                opengames.splice(g, 1);
+                        for (var og in opengames) {
+                            if (opengames[og] == socket.currentGame) {
+                                opengames.splice(og, 1);
                             }
                         }
 

@@ -758,8 +758,7 @@ Game.prototype.removePlayer = function(socket, callback) {
         this.broadcast(sf);
     }
     for (var s in this.sockets) {
-        var sk = this.sockets[s];
-        if (sk == socket) {
+        if (this.sockets[s] == socket) {
             this.sockets.splice(s, 1);
             break;
         }

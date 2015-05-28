@@ -25,7 +25,6 @@ exports.getSocialUser = function(data, callback) {
             collection.findOne({network: data.network, uid: data.uid}, function(err, docs) {
                 console.log(docs);
                 if (docs) {
-                    console.log('docs - ', docs);
                     var user = new User(docs);
                     callback({'user': user});
                 } else {
@@ -45,14 +44,57 @@ exports.getUser = function(data, callback) {
     if (db) {
         var collection = db.collection('user');
 
-        console.log('db getting user - ', data);
         collection.findOne({uid: data._id}, function(err, docs) {
-            console.log('error ', err);
-            console.log('docs ', docs);
             if (docs) {
                 var user = new User(docs);
                 callback({'user': user});
 
+            } else {
+                callback({error: {message: 'notfound', code: 404}});
+            }
+
+        });
+    } else {
+        callback({error: 'db fail'});
+    }
+}
+
+exports.getLeaderboard = function(data, callback) {
+    if (db) {
+        var collection = db.collection('user');
+        var searching = {hiscore: {$gte: 10}};
+        var sorting = {hiscore: -1};
+        console.log('db get leaders - ', data);
+        if (data.type == 'hiscore') {
+            searching = {hiscore: {$gte: 10}};
+            sorting = {hiscore: -1};
+        }
+        if (data.type == 'exp') {
+            searching = {exp: {$gte: 10}};
+            sorting = {exp: -1};
+        }
+
+
+        collection.find(searching, {fields: {_id: 1, name: 1, hiscore: 1}}).sort(sorting).limit(100).toArray(function(err, docs) {
+            if (docs) {
+                callback(docs);
+            } else {
+                callback({error: {message: 'notfound', code: 404}});
+            }
+
+        });
+    } else {
+        callback({error: 'db fail'});
+    }
+}
+
+exports.getHiScorePlace = function(data, callback) {
+    if (db) {
+        var collection = db.collection('user');
+        collection.find({hiscore: {$gte: data.score}}).count(function(err, docs) {
+            console.log('docs ', docs);
+            if (docs) {
+                callback(docs);
             } else {
                 callback({error: {message: 'notfound', code: 404}});
             }
@@ -71,7 +113,7 @@ exports.saveUser = function(data, callback) {
         if (data) {
             var st = collection.update({_id: data._id}, data, function(err, docs) {
                 if (docs) {
-                //    console.log(docs);
+                    //    console.log(docs);
                     callback({ok: true});
                 } else {
                     callback({error: err});

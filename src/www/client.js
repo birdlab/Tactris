@@ -36,6 +36,11 @@ var TACTRIS = (function(_t) {
 
             var viewer = {};
 
+            var fixmenu = function() {
+                $('#menubar').css({'margin-left': $('.leftsidebar').width()});
+                $('.infopanel').css({'margin-left': $('.leftsidebar').width()});
+            }
+
             $(window).resize(onresize);
             $(window).blur(function(e) {
                 _t.client.sendBlur();
@@ -48,6 +53,10 @@ var TACTRIS = (function(_t) {
                     _t.client.sendInsert();
                 }
             });
+
+            $('.uibutton.leaderboard').click(function() {
+                viewer.showLeaderboard();
+            })
 
             var newBlock = function(container) {
 
@@ -347,6 +356,7 @@ var TACTRIS = (function(_t) {
                         nxt.fig[i].setState('active');
                     }
                 }
+                fixmenu();
                 // }
             }
             viewer.setUserStatus = function(data) {
@@ -372,6 +382,7 @@ var TACTRIS = (function(_t) {
                 }
 
                 $('.userpanel.u' + user.id).remove();
+                fixmenu();
 
             }
             viewer.showNewUser = function(name, callback) {
@@ -418,7 +429,36 @@ var TACTRIS = (function(_t) {
                     viewer.fillPole(data);
                 })
             }
+            viewer.showLeaderboard = function(type) {
+                var t = 'hiscore';
+                if (type) {
+                    t = type;
+                }
+                _t.client.getLeaderboard(t, function(data) {
+                    if ($('#leaderboard').hasClass('hide')) {
+                        if (!$('#gameover').hasClass('hide')) {
+                            viewer.clearPole();
+                        }
+                        $('.infopanel').addClass('hide');
+                        $('#leaderboard').removeClass('hide').html('');
 
+
+                        var list = '<div><table><tbody>';
+                        for (var i in data) {
+                            var index = Number(i) + 1;
+                            data[i].name = data[i].name.replace(/<(?:.|\n)*?>/gm, '');
+                            // list += '<div>' + data[i].name + '<span>' + data[i].hiscore + '</span></div>'
+                            list += '<tr><td class="place">' + index + '</td><td>' + data[i].name + '</td><td class="hiscore">' + data[i].hiscore + '</td></tr>';
+                        }
+                        list += '</tbody></table></div>';
+
+
+                        $('#leaderboard').html(list);
+                    } else {
+                        $('#leaderboard').addClass('hide');
+                    }
+                });
+            }
 
             return viewer;
         }());
@@ -520,7 +560,7 @@ var TACTRIS = (function(_t) {
             client.getGame = function(mode) {//TODO rewrite to single function
                 getgame(mode);
             }
-            client.syncState = function(callback) {//TODO rewrite to single function
+            client.syncState = function(callback) {
                 socket.emit('syncstate', function(data) {
                     callback(data);
                 })
@@ -529,6 +569,10 @@ var TACTRIS = (function(_t) {
                 socket.emit('systeminfo', function(data) {
                     console.log(data)
                 })
+
+            }
+            client.getLeaderboard = function(type, callback) {
+                socket.emit('getleaderboard', {'type': type}, callback);
 
             }
 
@@ -555,6 +599,12 @@ var TACTRIS = (function(_t) {
                 _t.viewer.showProgress('Авторизуем...');
                 socket.emit('login', {t: token}, processlogin);
             };
+            client.shutdown = function(reason) {
+                if (reason) {
+                    socket.emit('shutdown', {'reason': reason});
+                }
+
+            }
 
             return client;
         }());
