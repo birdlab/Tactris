@@ -13,12 +13,18 @@ var TACTRIS = (function(_t) {
         var mousedown = false;
         var userpanel = null;
         var userpanel2 = null;
-
-
         var user = {};
         var users = [];
         var moveblock = false;
         var pause = false;
+
+        console.log(window.location);
+
+        if (navigator.userAgent.match('Firefox')){
+            console.log(navigator.userAgent);
+            $('#start').addClass('hide');
+            $('<p>Тысяча извинений, но я не умею в Firefox, а Firefox не умеет в тактрис. Используй Chrome или его братьев</p>').appendTo($('#disclaimer'));
+        };
         /*
          function componentToHex(c) {
          var hex = c.toString(16);
@@ -107,7 +113,7 @@ var TACTRIS = (function(_t) {
             viewer.showError = function(data) {
                 $('#start').removeClass('hide');
                 $('#tactris').addClass('hide');
-                $('#start .inside').html('<h1>Без паники!</h1><p>Трактрис ушел доделываться. Спасибо за терпение ;)</p><small>Скоро:<br>индивидуальные цвета пользователей, обработка "заснувших" пользователей, звуковой пинг "заснувшего", внутриигровой чат, профиль пользователя со статистикой, таблицы рекородов, дуэли 1x1, рассылка приглашений в совместную игру для друзей</small>');
+                $('#start .inside').html('<h1>Без паники!</h1><p>Трактрис ушел доделываться. Спасибо за терпение ;)</p><small>Если это безобразие происходит дольше часа, <a href="http://birdlab.ru">тут</a> есть все контакты</small>');
             }
             viewer.showGreating = function(data) {
                 $('#start .inside').html('<h1>Привет, ' + data.name + '!</h1><div id="startprivate" class="uiblock">Моя игра</div><div id="startopen" class="uiblock">Открытая игра</div><div id="connectopen" class="uiblock">Подключиться к открытой игре</div>');
