@@ -1,4 +1,5 @@
 var db = require('./db.js');
+var crypto = require('crypto');
 
 function User(data) {
     this.dbdata = data;
@@ -21,6 +22,22 @@ User.prototype.addXp = function(xpink) {
     this.dbdata.exp = this.dbdata.exp + xpink;
     console.log(this.dbdata.name, ' xp added - ', xpink);
     return this.dbdata.exp;
+}
+
+User.prototype.getSessionId = function(socket) {
+    var hash = socket.handshake.headers['x-real-ip'] + this.dbdata._id.toString() + this.dbdata.uid;
+    var shasum = crypto.createHash('sha1');
+    shasum.update(hash, 'utf8');
+    return shasum.digest('hex');
+}
+
+
+User.prototype.setSessionId = function(socket) {
+    var hash = socket.handshake.headers['x-real-ip'] + this.dbdata._id.toString() + this.dbdata.uid;
+    var shasum = crypto.createHash('sha1');
+    shasum.update(hash, 'utf8');
+    _this.dbdata.sessionid=shasum.digest('hex');
+    return _this.dbdata.sessionid;
 }
 
 User.prototype.minimize = function() {
