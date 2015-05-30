@@ -40,6 +40,24 @@ exports.getSocialUser = function(data, callback) {
         callback({error: 'db fail'});
     }
 }
+exports.getSessionUser = function(data, callback) {
+    if (db) {
+        var collection = db.collection('user');
+
+        collection.findOne({sessionid: data}, function(err, docs) {
+            if (docs) {
+                var user = new User(docs);
+                callback({'user': user});
+
+            } else {
+                callback({error: {message: 'notfound', code: 404}});
+            }
+
+        });
+    } else {
+        callback({error: 'db fail'});
+    }
+}
 exports.getUser = function(data, callback) {
     if (db) {
         var collection = db.collection('user');

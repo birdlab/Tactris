@@ -145,6 +145,24 @@ io.on('connection', function(socket) {
     });
 
     socket.on('login', function(data, callback) {
+        if (data.s) {
+            db.getSessionUser(data.s, function(d) {
+                if (d.user) {
+                    if (d.user.getSessionId(socket) === data.s) {
+                        socket.user = d.user;
+                        users.push(socket.user);
+                        bindcommands(socket);
+                        var userdata= socket.user.minimize();
+                        userdata.sessionid=socket.user.dbdata.sessionid;
+                        callback({user: userdata});
+                    } else {
+                        callback({error: 'badsession'});
+                    }
+                } else {
+                    callback({error: 'badsession'});
+                }
+            });
+        }
         if (data.t) {
             if (debug) {
                 db.getUser({_id: '1566736261'}, function(data) {
@@ -180,10 +198,13 @@ io.on('connection', function(socket) {
                                                     db.createNewUser(parsedData, function(d) {
                                                         if (d.user) {
                                                             socket.user = d.user;
+                                                            socket.user.setSessionId(socket);
+                                                            socket.user.save();
                                                             users.push(socket.user);
                                                             bindcommands(socket);
-                                                            callback({user: socket.user.minimize()});
-
+                                                            var userdata= socket.user.minimize();
+                                                            userdata.sessionid=socket.user.dbdata.sessionid;
+                                                            callback({user: userdata, systemdata: systemdata()});
                                                         }
 
                                                     });
@@ -193,9 +214,13 @@ io.on('connection', function(socket) {
                                         }
                                         if (data.user) {
                                             socket.user = data.user;
+                                            socket.user.setSessionId(socket);
+                                            socket.user.save();
                                             users.push(socket.user);
                                             bindcommands(socket);
-                                            callback({user: socket.user.minimize(), systemdata: systemdata()});
+                                            var userdata= socket.user.minimize();
+                                            userdata.sessionid=socket.user.dbdata.sessionid;
+                                            callback({user: userdata, systemdata: systemdata()});
                                         }
                                     }
                                 });

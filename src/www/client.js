@@ -18,13 +18,66 @@ var TACTRIS = (function(_t) {
         var moveblock = false;
         var pause = false;
 
-        console.log(window.location);
+        var storage = {
+            /**
+             * get key value from localstorage
+             * @param {String} key
+             */
+            get: function(key) {
+                var retrievedObj = null;
+                try {
+                    var value = localStorage.getItem(key)
+                    if (value) {
+                        //console.log(value);
+                        retrievedObj = JSON.parse(value);
+                    }
+                }
+                catch (e) {
+                }
+                return retrievedObj;
+            },
+            /**
+             * set value of key to localstorage
+             * @param {String} key
+             * @param {*} value
+             */
+            set: function(key, value) {
+                try {
+                    var stringify = JSON.stringify(value);
+                    localStorage.setItem(key, stringify);
+                }
+                catch (e) {
+                }
+                return value;
+            },
+            /**
+             * delete value of key in localstorage
+             * @param {String} key
+             */
+            remove: function(key) {
+                try {
+                    localStorage.removeItem(key);
+                }
+                catch (e) {
+                }
+            }
+        };
 
-        if (navigator.userAgent.match('Firefox')){
+        var router = {};
+        console.log(window.location.hash.match('\#(.*)$'))
+        if (window.location.pathname.match('/user') && window.location.hash.match('\#(.*)$')) {
+            router.userid = window.location.hash.match('\#(.*)$')[1];
+        }
+        if (window.location.pathname.match('/game') && window.location.hash.match('\#(.*)$')) {
+            router.gameid = window.location.hash.match('\#(.*)$')[1];
+        }
+
+        if (navigator.userAgent.match('Firefox')) {
             console.log(navigator.userAgent);
             $('#start').addClass('hide');
             $('<p>Тысяча извинений, но я не умею в Firefox, а Firefox не умеет в тактрис. Используй Chrome или его братьев</p>').appendTo($('#disclaimer'));
-        };
+        }
+        ;
         /*
          function componentToHex(c) {
          var hex = c.toString(16);
@@ -475,13 +528,21 @@ var TACTRIS = (function(_t) {
         }());
 
         _t.client = (function() {
-            var socket = io();
+            if (window.io) {
+                var socket = io();
+            } else {
+                _t.viewer.showError({d: 'eee'});
+            }
 
             socket.on('connect', function(data) {
-                _t.viewer.showLogin(data);
-                if (debug) {
-                    _t.client.login('asdasd');
+
+                var sessionid = storage.get('sessionid');
+                if (sessionid) {
+                    _t.client.resume(sessionid);
+                } else {
+                    _t.viewer.showLogin(data);
                 }
+
             });
             socket.on('newuser', function(data) {
                 _t.viewer.addUser(data);
@@ -550,6 +611,7 @@ var TACTRIS = (function(_t) {
                 });
             }
             var processlogin = function(data) {
+                console.log(data);
                 if (data.newuser) {
                     _t.viewer.showNewUser(data.newuser, function(name) {
                         console.log(name);
@@ -559,9 +621,15 @@ var TACTRIS = (function(_t) {
                         });
                     });
                 }
+                if (data.error == 'badsession') {
+                    _t.viewer.showLogin();
+                }
 
                 if (data.user) {
                     console.log(data);
+                    if (data.user.sessionid){
+                        storage.set('sessionid', data.user.sessionid)
+                    }
                     user = data.user;
                     _t.viewer.showGreating({name: data.user.name});
                     // _t.viewer.showProgress('Привет, ' + data.user.name + '! <br> Сейчас мы найдем подходящую игру...');
@@ -606,6 +674,10 @@ var TACTRIS = (function(_t) {
             client.sendBlur = function() {
                 socket.emit('blur');
             }
+            client.resume = function(session) {
+                _t.viewer.showProgress('Авторизуем...');
+                socket.emit('login', {s: session}, processlogin);
+            };
             client.login = function(token) {
                 _t.viewer.showProgress('Авторизуем...');
                 socket.emit('login', {t: token}, processlogin);
