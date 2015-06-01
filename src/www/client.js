@@ -320,6 +320,7 @@ var TACTRIS = (function(_t) {
                 $('#start').addClass('hide');
                 $('#tactris').removeClass('hide');
                 var dimensions = data.pole.length;
+                pole = [];
                 for (j = 0; j < dimensions; j++) {
                     var line = [];
                     pole.push(line);
@@ -374,6 +375,13 @@ var TACTRIS = (function(_t) {
                         viewer.setUserStatus({id: data.users[u].id, blur: data.users[u].blured})
                     }
                 }
+
+                _t.client.getSystemInfo(function(data) {
+                    var d = '<div>Сейчас в игре: ' + data.users.length + '</div>';
+                    d += '<div>Открытых игр: ' + data.opengames + '</div>'
+                    $('#menubar .stats').html(d);
+
+                });
 
                 var sample = pole[0][0].div
                 var samplesize = parseInt(sample.css('height')) + parseInt(sample.css('margin'));
@@ -611,7 +619,6 @@ var TACTRIS = (function(_t) {
                 });
             }
             var processlogin = function(data) {
-                console.log(data);
                 if (data.newuser) {
                     _t.viewer.showNewUser(data.newuser, function(name) {
                         console.log(name);
@@ -627,7 +634,7 @@ var TACTRIS = (function(_t) {
 
                 if (data.user) {
                     console.log(data);
-                    if (data.user.sessionid){
+                    if (data.user.sessionid) {
                         storage.set('sessionid', data.user.sessionid)
                     }
                     user = data.user;
@@ -644,9 +651,13 @@ var TACTRIS = (function(_t) {
                     callback(data);
                 })
             }
-            client.getSystemInfo = function() {
+            client.getSystemInfo = function(callback) {
                 socket.emit('systeminfo', function(data) {
-                    console.log(data)
+                    if (callback) {
+                        callback(data)
+                    } else {
+                        console.log(data);
+                    }
                 })
 
             }
