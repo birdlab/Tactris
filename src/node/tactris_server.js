@@ -96,63 +96,109 @@ var bindcommands = function(socket) {
         }
     });
     socket.on('getgame', function(data, callback) {
-        var createshared = function() {
-            var game = new SharedGame({dim: 10});
-            opengames.push(game);
-            game.addPlayer(socket, callback);
-            for (var p in waitforshared) {
-                if (game.sockets.length < 4) {
-                    var playerdata = waitforshared.unshift();
-                    game.addPlayer(playerdata.so, playerdata.call);
+            var createshared = function() {
+                var game = new SharedGame({dim: 10});
+                opengames.push(game);
+                game.addPlayer(socket, callback);
+                for (var p in waitforshared) {
+                    if (game.sockets.length < 4) {
+                        var playerdata = waitforshared.unshift();
+                        game.addPlayer(playerdata.so, playerdata.call);
+                    }
                 }
             }
-        }
-        var createpersonal = function() {
-            var game = new SharedGame({dim: 10, personal: true, save: socket.user.dbdata.game});
-            games.push(game);
-            game.addPlayer(socket, callback);
-        }
-        if (data.gt == 'personal') {
-            createpersonal();
-        }
-        if (data.gt == 'newopen') {
-            createshared();
-        }
+            var createpersonal = function() {
+                var game = new SharedGame({dim: 10, personal: true, save: socket.user.dbdata.game});
+                games.push(game);
+                game.addPlayer(socket, callback);
+            }
+            if (data.gt == 'personal') {
+                removeSocket(socket, function() {
+                    createpersonal();
+                });
 
-        if (data.gt == 'open') {
-            if (socket.currentGame) {
-                if (!socket.currentGame.personal) {
-                    if (data.gt == 'open') {
-                        socket.gameskip++;
+            }
+            if (data.gt == 'newopen') {
+                removeSocket(socket, function() {
+                    createshared();
+                });
+            }
+
+            if (data.gt == 'open') {
+                var finded = false;
+
+                removeSocket(socket, function() {
+                    if (opengames.length) {
+                        var freeslots = [];
+                        for (var g in opengames) {
+                            if (opengames[g].sockets.length < 4) {
+                                var ingame = false;
+                                for (var s in opengames[g].sockets) {
+                                    if (opengames[g].sockets[s].user.dbdata._id.toString() === socket.user.dbdata._id.toString()) {
+                                        ingame = true;
+                                    }
+                                }
+                                if (!ingame) {
+                                    freeslots.push(opengames[g]);
+                                }
+                            }
+                        }
+                        if (freeslots.length) {
+                            freeslots = sortByActivity(freeslots);
+                            console.log(freeslots.length);
+                            console.log(socket.gameskip);
+                            if (socket.gameskip < freeslots.length) {
+
+                                freeslots[socket.gameskip].addPlayer(socket, callback);
+                                finded = true;
+                                socket.gameskip++;
+
+                            } else {
+                                socket.gameskip = 0;
+                            }
+                        }
+                    }
+                    if (!finded) {
+                        createshared();
+                        // waitforshared.push({so: socket, call: callback});
+                    }
+                });
+
+            }
+        }
+    )
+    ;
+
+}
+
+var removeSocket = function(socket, callback) {
+    if (socket.currentGame) {
+        socket.currentGame.removePlayer(socket, function() {
+            if (socket.currentGame.sockets.length < 1) {
+                if (socket.currentGame.personal) {
+                    for (var g in games) {
+                        if (games[g] == socket.currentGame) {
+                            games.splice(g, 1);
+                        }
                     }
                 } else {
-                    socket.currentGame.save();
-                }
-            }
-            var finded = false;
-            if (opengames.length) {
-                var freeslots = [];
-                for (var g in opengames) {
-                    if (opengames[g].sockets.length < 4) {
-                        freeslots.push(opengames[g]);
+                    for (var og in opengames) {
+                        if (opengames[og] == socket.currentGame) {
+                            opengames.splice(og, 1);
+                        }
                     }
-                }
-                if (freeslots.length) {
-                    freeslots = sortByActivity(freeslots);
-                    if (socket.gameskip > freeslots.length) {
-                        socket.gameskip = 0;
-                    }
-                    freeslots[socket.gameskip].addPlayer(socket, callback);
-                    finded = true;
-                }
-            }
-            if (!finded) {
-                createshared();
-                // waitforshared.push({so: socket, call: callback});
-            }
 
+                }
+            }
+            if (callback) {
+                callback();
+            }
+        });
+    } else {
+        if (callback) {
+            callback();
         }
-    });
+    }
 
 }
 
@@ -292,25 +338,6 @@ io.on('connection', function(socket) {
 
     socket.on('disconnect', function() {
         removeUser(socket.user);
-        if (socket.currentGame) {
-            socket.currentGame.removePlayer(socket, function() {
-                if (socket.currentGame.sockets.length < 1) {
-                    if (socket.currentGame.personal) {
-                        for (var g in games) {
-                            if (games[g] == socket.currentGame) {
-                                games.splice(g, 1);
-                            }
-                        }
-                    } else {
-                        for (var og in opengames) {
-                            if (opengames[og] == socket.currentGame) {
-                                opengames.splice(og, 1);
-                            }
-                        }
-
-                    }
-                }
-            });
-        }
+        removeSocket(socket);
     });
 });

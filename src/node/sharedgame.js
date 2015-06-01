@@ -459,7 +459,7 @@ Game.prototype.checkGameOver = function() {
             }
         }
         var users = [];
-        if (this.personal){
+        if (this.personal) {
             this.save();
         }
         for (var s in this.sockets) {
@@ -775,10 +775,15 @@ Game.prototype.removePlayer = function(socket, callback) {
             break;
         }
     }
+    console.log('game sockets - ' + this.sockets.length);
     socket.blured = false;
-    socket.user.save();
+    if (this.personal) {
+        this.save()
+    } else {
+        socket.user.save();
+    }
+
     this.emit('deluser', {id: socket.user.dbdata._id.toString()});
-    this.checkGameOver();
     callback();
 }
 
@@ -800,6 +805,7 @@ Game.prototype.save = function() {
             var slot = this.slots[0];
             var user = this.slots[0].socket.user;
             slot.currents = slot.socket.currents;
+            slot.score = slot.socket.score;
             var gamedata = {
                 pole: this.pole,
                 slots: [

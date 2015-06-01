@@ -8,6 +8,7 @@ var TACTRIS = (function(_t) {
     $(document).ready(function() {
 
         var pole = [];
+        var dimensions = 10;
         var viewport = $('#gamecontent');
         var polediv = viewport.children('#pole');
         var mousedown = false;
@@ -17,6 +18,7 @@ var TACTRIS = (function(_t) {
         var users = [];
         var moveblock = false;
         var pause = false;
+        var gameMode = '';
 
         var storage = {
             /**
@@ -62,6 +64,7 @@ var TACTRIS = (function(_t) {
                 }
             }
         };
+
 
         var router = {};
         console.log(window.location.hash.match('\#(.*)$'))
@@ -116,6 +119,17 @@ var TACTRIS = (function(_t) {
             $('.uibutton.leaderboard').click(function() {
                 viewer.showLeaderboard();
             })
+            $('.uibutton.personal').click(function() {
+                if (gameMode != 'personal') {
+                    _t.client.getGame('personal');
+                }
+            });
+            $('.uibutton.shared').click(function() {
+                _t.client.getGame('open');
+            });
+
+
+            $('.uibutton').tipsy({gravity: 's'});
 
             var newBlock = function(container) {
 
@@ -158,7 +172,38 @@ var TACTRIS = (function(_t) {
                 }
                 return block;
             }
+            for (j = 0; j < dimensions; j++) {
+                var line = [];
+                pole.push(line);
+                for (i = 0; i < dimensions; i++) {
+                    var block = {
+                        x: i,
+                        y: j,
+                        state: 'empty',
+                        div: newBlock(polediv),
+                        setState: function(state, self) {
 
+                            this.state = state;
+                            this.div.go(state);
+                            if (self) {
+                                _t.client.sendPick(this);
+                            }
+                        },
+                        setPosition: function(x, y, animate) {
+                            this.x = x;
+                            this.y = y;
+                            if (animate) {
+                                this.div.setTo(this);
+                            } else {
+                                this.div.setTo(this);
+                            }
+                        }
+                    };
+                    block.setState('empty');
+                    block.div.setTo(block);
+                    line.push(block);
+                }
+            }
 
             viewer.showLogin = function() {
                 $('#start .inside').html(' Привет! Для начала трогни одну из кнопочек<div id="uLogin" data-ulogin="display=buttons;fields=first_name,last_name;providers=vkontakte,facebook;redirect_uri=http%3A%2F%2Fbirdlab.ru%2F;callback=login"><div class="loginbutton"><img src="img/vk.png" data-uloginbutton="vkontakte"/></div><div class="loginbutton"><img src="img/facebook.png" data-uloginbutton="facebook"/></div></div>');
@@ -169,17 +214,18 @@ var TACTRIS = (function(_t) {
                 $('#start .inside').html('<h1>Без паники!</h1><p>Трактрис ушел доделываться. Спасибо за терпение ;)</p><small>Если это безобразие происходит дольше часа, <a href="http://birdlab.ru">тут</a> есть все контакты</small>');
             }
             viewer.showGreating = function(data) {
-                $('#start .inside').html('<h1>Привет, ' + data.name + '!</h1><div id="startprivate" class="uiblock">Моя игра</div><div id="startopen" class="uiblock">Открытая игра</div><div id="connectopen" class="uiblock">Подключиться к открытой игре</div>');
-                $('#startprivate').click(function() {
-                    _t.client.getGame('personal');
-                });
-                $('#startopen').click(function() {
-                    _t.client.getGame('newopen');
-                });
-                $('#connectopen').click(function() {
-                    _t.client.getGame('open');
-                });
-
+                /*     $('#start .inside').html('<h1>Привет, ' + data.name + '!</h1><div id="startprivate" class="uiblock">Моя игра</div><div id="startopen" class="uiblock">Открытая игра</div><div id="connectopen" class="uiblock">Подключиться к открытой игре</div>');
+                 $('#startprivate').click(function() {
+                 _t.client.getGame('personal');
+                 });
+                 $('#startopen').click(function() {
+                 _t.client.getGame('newopen');
+                 });
+                 $('#connectopen').click(function() {
+                 _t.client.getGame('open');
+                 });
+                 */
+                _t.client.getGame('personal');
             }
             viewer.showProgress = function(message) {
                 $('#start .inside').html(message);
@@ -316,49 +362,13 @@ var TACTRIS = (function(_t) {
             }
 
             viewer.showGame = function(data) {
-                $('#disclaimer').addClass('hide');
                 $('#start').addClass('hide');
                 $('#tactris').removeClass('hide');
-                var dimensions = data.pole.length;
-                pole = [];
-                for (j = 0; j < dimensions; j++) {
-                    var line = [];
-                    pole.push(line);
-                    for (i = 0; i < dimensions; i++) {
-                        var block = {
-                            x: i,
-                            y: j,
-                            state: 'empty',
-                            div: newBlock(polediv),
-                            setState: function(state, self) {
-
-                                this.state = state;
-                                this.div.go(state);
-                                if (self) {
-                                    _t.client.sendPick(this);
-                                }
-                            },
-                            setPosition: function(x, y, animate) {
-                                this.x = x;
-                                this.y = y;
-                                if (animate) {
-                                    this.div.setTo(this);
-                                } else {
-                                    this.div.setTo(this);
-                                }
-                            }
-                        };
-                        var st = 'empty';
-                        if (data.pole[j][i] === 1) {
-                            block.setState('placed');
-                        }
-                        if (data.pole[j][i] === 0) {
-                            block.setState('empty');
-                        }
-                        block.div.setTo(block);
-                        line.push(block);
-                    }
+                for (var u in users) {
+                    viewer.removeUser(users[u]);
                 }
+
+                viewer.fillPole(data);
                 if (data.users) {
                     for (var us in data.users) {
                         if (data.users[us].id == user.id) {
@@ -508,6 +518,7 @@ var TACTRIS = (function(_t) {
                             viewer.clearPole();
                         }
                         $('.infopanel').addClass('hide');
+                        $('.uibutton.leaderboard').addClass('active');
                         $('#leaderboard').removeClass('hide').html('');
 
 
@@ -528,6 +539,7 @@ var TACTRIS = (function(_t) {
                         $('#leaderboard').html(list);
                     } else {
                         $('#leaderboard').addClass('hide');
+                        $('.uibutton.leaderboard').removeClass('active');
                     }
                 });
             }
@@ -613,6 +625,17 @@ var TACTRIS = (function(_t) {
                 socket.emit('getgame', dt, function(data) {
                     console.log('gameinfo', data);
                     if (data.pole.length) {
+
+                        if (type == 'personal') {
+                            $('.uibutton.shared').removeClass('active');
+                            $('.uibutton.personal').addClass('active');
+                            gameMode = type;
+                        } else {
+                            $('.uibutton.shared').addClass('active');
+                            $('.uibutton.personal').removeClass('active');
+                            gameMode = 'shared';
+
+                        }
                         _t.viewer.showGame(data);
 
                     }

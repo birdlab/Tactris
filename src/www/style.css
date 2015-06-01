@@ -354,13 +354,19 @@ a {
     font-size: 24px;
 }
 
-.uibutton:hover {
+.uibutton:hover, .uibutton.active {
     background-color: #fff;
     box-shadow: 0px 0px 25px 0px rgba(255, 255, 255, 0.70);
 }
 
 .uibutton.leaderboard {
     content: url(img/leaderboard2.png);
+}
+.uibutton.personal {
+    content: url(img/personal.png);
+}
+.uibutton.shared {
+    content: url(img/shared.png);
 }
 
 #prline {
