@@ -378,12 +378,30 @@ a {
     padding-right: 3px;
 }
 
-#prline a {
+#promo a {
     margin: 7px;
     color: #cccccc;
     font-size: 9px;
     float: left;
     text-decoration: none;
+}
+
+#prline .menuitem {
+    color: #aaa;
+    font-size: 14px;
+    position: inherit;
+
+}
+
+#prline .menu {
+    padding: 9px;
+    float: left;
+    text-align: center;
+    padding-left: 10%;
+}
+
+#prline .menuitem:hover {
+    color: #fff;
 }
 
 #socialism {
@@ -394,5 +412,12 @@ a {
 #fucking_vk {
     position: fixed;
     right: 260px;
-    bottom: 0px;
+    bottom: 7px;
+}
+
+#menubar .stats {
+    position: relative;
+    bottom: 50px;
+    left: 516px;
+    font-size: 10px;
 }
