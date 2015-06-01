@@ -131,7 +131,6 @@ exports.saveUser = function(data, callback) {
         if (data) {
             var st = collection.update({_id: data._id}, data, function(err, docs) {
                 if (docs) {
-                    //    console.log(docs);
                     callback({ok: true});
                 } else {
                     callback({error: err});

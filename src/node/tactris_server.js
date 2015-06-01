@@ -21,7 +21,6 @@ var systemdata = function() {
     for (var u in users) {
         data.users.push(users[u].minimize());
     }
-    //   db.getHiScorePlace({score:1000},function(data){console.log(data)});
 
     return data;
 }
@@ -40,13 +39,23 @@ var bindcommands = function(socket) {
     socket.on('shutdown', function(data) {
         if (socket.user) {
             if (socket.user.dbdata._id.toString() === "555e90116e88debb335b91cd") {
-                console.log('Рестарт сервера через 2 секунды');
+                var timeout = 2000;
+                if (data.timeout) {
+                    timeout = data.timeout;
+                }
+                io.emit('alert', data);
                 if (data.reason) {
                     console.log(data.reason);
                 }
                 setTimeout(function() {
-                    process.exit();
-                }, 2000);
+                    for (var g in games) {
+                        games[g].save();
+                    }
+                    setTimeout(function() {
+                        process.exit();
+                    }, 3000);
+
+                }, timeout);
             }
         }
     })
@@ -59,7 +68,18 @@ var bindcommands = function(socket) {
         if (socket.currentGame) {
             socket.currentGame.blurUser(socket);
         }
-    })
+    });
+    socket.on('getuser', function(data, callback) {
+        if (data.id) {
+            for (var u in users) {
+                if (data.id === users[u].dbdata._id.toString()) {
+                    users[u].fullData(callback);
+                    return;
+                }
+            }
+            db.getUser()
+        }
+    });
     socket.on('syncstate', function(callback) {
         if (socket.currentGame) {
             socket.currentGame.getPoleState(callback);
@@ -76,7 +96,6 @@ var bindcommands = function(socket) {
         }
     });
     socket.on('getgame', function(data, callback) {
-        console.log(data);
         var createshared = function() {
             var game = new SharedGame({dim: 10});
             opengames.push(game);
@@ -89,7 +108,7 @@ var bindcommands = function(socket) {
             }
         }
         var createpersonal = function() {
-            var game = new SharedGame({dim: 10, personal: true});
+            var game = new SharedGame({dim: 10, personal: true, save: socket.user.dbdata.game});
             games.push(game);
             game.addPlayer(socket, callback);
         }
@@ -99,7 +118,17 @@ var bindcommands = function(socket) {
         if (data.gt == 'newopen') {
             createshared();
         }
+
         if (data.gt == 'open') {
+            if (socket.currentGame) {
+                if (!socket.currentGame.personal) {
+                    if (data.gt == 'open') {
+                        socket.gameskip++;
+                    }
+                } else {
+                    socket.currentGame.save();
+                }
+            }
             var finded = false;
             if (opengames.length) {
                 var freeslots = [];
@@ -110,7 +139,10 @@ var bindcommands = function(socket) {
                 }
                 if (freeslots.length) {
                     freeslots = sortByActivity(freeslots);
-                    freeslots[0].addPlayer(socket, callback);
+                    if (socket.gameskip > freeslots.length) {
+                        socket.gameskip = 0;
+                    }
+                    freeslots[socket.gameskip].addPlayer(socket, callback);
                     finded = true;
                 }
             }
@@ -133,7 +165,7 @@ var removeUser = function(user) {
                 }
             }
         }
-    }, 15000);
+    }, 5000);
 }
 
 io.on('connection', function(socket) {
@@ -145,6 +177,7 @@ io.on('connection', function(socket) {
     });
 
     socket.on('login', function(data, callback) {
+        socket.gameskip = 0;
         if (data.s) {
             db.getSessionUser(data.s, function(d) {
                 if (d.user) {
@@ -152,8 +185,8 @@ io.on('connection', function(socket) {
                         socket.user = d.user;
                         users.push(socket.user);
                         bindcommands(socket);
-                        var userdata= socket.user.minimize();
-                        userdata.sessionid=socket.user.dbdata.sessionid;
+                        var userdata = socket.user.minimize();
+                        userdata.sessionid = socket.user.dbdata.sessionid;
                         callback({user: userdata});
                     } else {
                         callback({error: 'badsession'});
@@ -198,12 +231,12 @@ io.on('connection', function(socket) {
                                                     db.createNewUser(parsedData, function(d) {
                                                         if (d.user) {
                                                             socket.user = d.user;
+                                                            users.push(socket.user);
                                                             socket.user.setSessionId(socket);
                                                             socket.user.save();
-                                                            users.push(socket.user);
                                                             bindcommands(socket);
-                                                            var userdata= socket.user.minimize();
-                                                            userdata.sessionid=socket.user.dbdata.sessionid;
+                                                            var userdata = socket.user.minimize();
+                                                            userdata.sessionid = socket.user.dbdata.sessionid;
                                                             callback({user: userdata, systemdata: systemdata()});
                                                         }
 
@@ -213,13 +246,26 @@ io.on('connection', function(socket) {
                                             callback({newuser: parsedData.first_name + ' ' + parsedData.last_name});
                                         }
                                         if (data.user) {
+                                            var finded = false;
+                                            for (var u in users) {
+                                                if (users[u].dbdata._id.toString() === data.user.dbdata._id.toString()) {
+                                                    socket.user = users[u];
+                                                    console.log('finded');
+                                                    finded = true;
+                                                    break
+                                                }
+                                            }
+                                            if (!finded) {
+                                                socket.user = data.user;
+                                                users.push(socket.user);
+                                            }
                                             socket.user = data.user;
                                             socket.user.setSessionId(socket);
                                             socket.user.save();
                                             users.push(socket.user);
                                             bindcommands(socket);
-                                            var userdata= socket.user.minimize();
-                                            userdata.sessionid=socket.user.dbdata.sessionid;
+                                            var userdata = socket.user.minimize();
+                                            userdata.sessionid = socket.user.dbdata.sessionid;
                                             callback({user: userdata, systemdata: systemdata()});
                                         }
                                     }

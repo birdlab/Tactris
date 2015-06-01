@@ -360,7 +360,6 @@ function Game(data) {
     this.sockets = [];
     this.slots = [];
     this.changes = [];
-    this.gameId = 'shared' + Math.round(Math.random() * 100000);
     for (var y = 0; y < this.dimension; y++) {
         var line = [];
         this.pole.push(line);
@@ -372,6 +371,16 @@ function Game(data) {
     this.updaterate = Math.round(1000 / 12);
     this.lastmoved = null;
     this.lastActive = new Date();
+    if (data.save) {
+        this.pole = data.save.pole;
+        this.slots = data.save.slots;
+    }
+    if (this.personal && this.slots.length > 1) {
+        this.slots.shift();
+        for (var s in this.slots) {
+            this.slots[s].free = true;
+        }
+    }
 }
 
 Game.prototype.getPoleState = function(callback) {
@@ -434,38 +443,42 @@ Game.prototype.insertFigure = function(socket, callback) {
             this.lastActive = new Date();
 
             this.checkLines();
-
-            if (this.checkEnd()) {
-                this.pole = [];
-                for (var y = 0; y < this.dimension; y++) {
-                    var line = [];
-                    this.pole.push(line);
-                    for (var x = 0; x < this.dimension; x++) {
-                        line.push(0);
-                    }
-                }
-                var users = [];
-                for (var s in this.sockets) {
-                    var so = this.sockets[s];
-                    if (so.user.dbdata.hiscore < so.score) {
-                        so.user.dbdata.hiscore = so.score;
-                    }
-                    so.user.dbdata.totalgames++;
-                    users.push({
-                        id: so.user.dbdata._id.toString(),
-                        name: so.user.dbdata.name,
-                        score: so.score,
-                        hiscore: so.user.dbdata.hiscore
-                    })
-                    so.user.save();
-                    so.score = 0;
-                    so.figure = [];
-                }
-
-                this.emit('gameover', {'users': users});
-            }
+            this.checkGameOver()
         }
 
+    }
+}
+Game.prototype.checkGameOver = function() {
+    if (this.checkEnd()) {
+        this.pole = [];
+        for (var y = 0; y < this.dimension; y++) {
+            var line = [];
+            this.pole.push(line);
+            for (var x = 0; x < this.dimension; x++) {
+                line.push(0);
+            }
+        }
+        var users = [];
+        if (this.personal){
+            this.save();
+        }
+        for (var s in this.sockets) {
+            var so = this.sockets[s];
+            if (so.user.dbdata.hiscore < so.score) {
+                so.user.dbdata.hiscore = so.score;
+            }
+            so.user.dbdata.totalgames++;
+            users.push({
+                id: so.user.dbdata._id.toString(),
+                name: so.user.dbdata.name,
+                score: so.score,
+                hiscore: so.user.dbdata.hiscore
+            });
+            so.score = 0;
+            so.figure = [];
+            so.user.save();
+        }
+        this.emit('gameover', {'users': users});
     }
 }
 
@@ -729,7 +742,6 @@ Game.prototype.addPlayer = function(socket, callback) {
         }
         initData.users.push(userdata);
     }
-    initData.gameid = this.gameId;
     initData.pole = this.pole;
     var userdata = {
         id: socket.user.dbdata._id.toString(),
@@ -738,8 +750,8 @@ Game.prototype.addPlayer = function(socket, callback) {
         currents: socket.currents
     }
     this.emit('newuser', userdata);
-
     callback(initData);
+    this.checkGameOver();
 }
 
 
@@ -766,7 +778,7 @@ Game.prototype.removePlayer = function(socket, callback) {
     socket.blured = false;
     socket.user.save();
     this.emit('deluser', {id: socket.user.dbdata._id.toString()});
-    this.checkLines();
+    this.checkGameOver();
     callback();
 }
 
@@ -781,10 +793,24 @@ Game.prototype.blurUser = function(socket) {
     this.emit('userblur', {id: socket.user.dbdata._id.toString(), blur: socket.blured});
 }
 Game.prototype.save = function() {
-    console.log('saving', this.dbdata.name);
-    db.saveGame(this.dbdata, function(data) {
-        console.log('game saved - ', data);
-    });
+    if (this.personal) {
+        console.log('game is personal');
+        if (this.slots[0].socket && this.slots[0].socket.user) {
+            console.log('slots[0].socket.user finded');
+            var slot = this.slots[0];
+            var user = this.slots[0].socket.user;
+            slot.currents = slot.socket.currents;
+            var gamedata = {
+                pole: this.pole,
+                slots: [
+                    {currents: slot.currents, score: slot.score}
+                ]
+            }
+            console.log(gamedata);
+            user.dbdata.game = gamedata;
+            user.save();
+        }
+    }
     return this;
 }
 
