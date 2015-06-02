@@ -364,10 +364,6 @@ var TACTRIS = (function(_t) {
             viewer.showGame = function(data) {
                 $('#start').addClass('hide');
                 $('#tactris').removeClass('hide');
-                for (var u in users) {
-                    viewer.removeUser(users[u]);
-                }
-
                 viewer.fillPole(data);
                 if (data.users) {
                     for (var us in data.users) {
@@ -378,8 +374,8 @@ var TACTRIS = (function(_t) {
                         }
                     }
                     users = [];
-                    userpanel = $('.rigthsidebar');//.appendTo(viewport);
-                    userpanel2 = $('.leftsidebar');//.prependTo(viewport);
+                    userpanel = $('.rigthsidebar').html('');
+                    userpanel2 = $('.leftsidebar').html('');
                     for (var u in data.users) {
                         viewer.addUser(data.users[u]);
                         viewer.setUserStatus({id: data.users[u].id, blur: data.users[u].blured})
@@ -448,6 +444,13 @@ var TACTRIS = (function(_t) {
                         $('.userpanel.u' + users[u].id).fadeTo("slow", opacity, function() {
                             // Animation complete.
                         });
+                    }
+                    if (data.id == user.id) {
+                        if (data.blur === false) {
+                            _t.client.syncState(function(data) {
+                                viewer.fillPole(data);
+                            })
+                        }
                     }
                 }
             }
