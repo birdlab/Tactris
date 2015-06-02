@@ -356,6 +356,7 @@ function Game(data) {
     if (data.dim) {
         this.dimension = data.dim;
     }
+    this.id=Math.round(Math.random()*13034934);
     this.pole = [];
     this.sockets = [];
     this.slots = [];
