@@ -100,12 +100,7 @@ var bindcommands = function(socket) {
                 var game = new SharedGame({dim: 10});
                 opengames.push(game);
                 game.addPlayer(socket, callback);
-                for (var p in waitforshared) {
-                    if (game.sockets.length < 4) {
-                        var playerdata = waitforshared.unshift();
-                        game.addPlayer(playerdata.so, playerdata.call);
-                    }
-                }
+                io.emit('newshared', {id: game.id, user: {_id: socket.user.dbdata._id.toString(), name: socket.user.dbdata.name}})
             }
             var createpersonal = function() {
                 var game = new SharedGame({dim: 10, personal: true, save: socket.user.dbdata.game});
@@ -228,8 +223,19 @@ io.on('connection', function(socket) {
             db.getSessionUser(data.s, function(d) {
                 if (d.user) {
                     if (d.user.getSessionId(socket) === data.s) {
-                        socket.user = d.user;
-                        users.push(socket.user);
+                        var finded = false;
+                        for (var u in users) {
+                            if (users[u].dbdata._id.toString() === data.user.dbdata._id.toString()) {
+                                socket.user = users[u];
+                                console.log('finded');
+                                finded = true;
+                                break
+                            }
+                        }
+                        if (!finded) {
+                            socket.user = d.user;
+                            users.push(socket.user);
+                        }
                         bindcommands(socket);
                         var userdata = socket.user.minimize();
                         userdata.sessionid = socket.user.dbdata.sessionid;
