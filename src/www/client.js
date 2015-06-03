@@ -422,8 +422,7 @@ var TACTRIS = (function(_t) {
                 usr += '<td class="userpic u' + user.id + '"><div class="tactris-block active"></div></td><td class="stats">';
                 usr += '<div class="username">' + user.name + '</div><div class="score u' + user.id + '">Score: <span class="value">' + user.score + '</span><span class="increment"></span></div></td></tr></table>';
                 usr += '<div class="next next0 u' + user.id + '"></div><div class="next next1 u' + user.id + '"></div></div></div>';
-
-                if (userpanel && userpanel.children().length > 2) {
+                if (userpanel && userpanel.children().length > 1) {
                     $(usr).appendTo(userpanel2);
                 } else {
                     $(usr).appendTo(userpanel);
