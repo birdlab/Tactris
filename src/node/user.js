@@ -7,7 +7,7 @@ function User(data) {
     this.dbdata.hiscore = data.hiscore || 0;
     this.dbdata.totalgames = data.totalgames || 0;
     this.dbdata.showsocial = data.showsocial || 0;
-    this.dbdata.game = data.game;
+    this.dbdata.name = data.name.replace(/<(?:.|\n)*?>/gm, '');
 }
 
 
