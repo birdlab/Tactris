@@ -251,8 +251,6 @@ var TACTRIS = (function(_t) {
                 for (var u in users) {
                     if (users[u].id === data.userid) {
                         var user = users[u];
-                        console.log('user finded');
-                        console.log(user)
                         var nextfigure = user.preview[data.newnext.index];
                         nextfigure.figure = data.newnext.figure;
                         for (var i in nextfigure.fig) {
@@ -394,17 +392,48 @@ var TACTRIS = (function(_t) {
                 polediv.css({'width': samplesize * dimensions, 'height': samplesize * dimensions});
 
             }
+            viewer.showUser = function(data) {
+                console.log(data);
+                $('.infopanel').addClass('hide');
+                $('#profile').removeClass('hide');
+
+                $('.uibutton.leaderboard').removeClass('active');
+
+                if (data.exp > 1000) {
+                    console.log(data.exp);
+                    data.exp = Math.round(data.exp / 1000) + 'K';
+                }
+                $('#profile').click(function() {
+                    $('#profile').addClass('hide');
+                })
+                //  document.styleSheets[0].insertRule(".me {font-size: 10px;}", 0);
+                $('#profile').find('.username').html(data.name);
+                $('#profile').find('.regdate span').html(data.regdate);
+                $('#profile').find('.exp span').html(data.exp);
+                $('#profile').find('.hiscore span').html(data.hiscore);
+                $('#profile').find('.overalscore span').html(data.overalscore);
+                $('#profile').find('.games span').html(data.totalgames);
+                $('#profile').find('.hiscoreplace span').html(data.hiscoreplace);
+
+            }
             viewer.addUser = function(user) {
                 users.push(user);
                 var usr = '<div class="userpanel u' + user.id + '"><table class="topinfo"><tr>';
                 usr += '<td class="userpic u' + user.id + '"><div class="tactris-block active"></div></td><td class="stats">';
-                usr += '<div>' + user.name + '</div><div class="score u' + user.id + '">Score: <span class="value">' + user.score + '</span><span class="increment"></span></div></td></tr></table>';
+                usr += '<div class="username">' + user.name + '</div><div class="score u' + user.id + '">Score: <span class="value">' + user.score + '</span><span class="increment"></span></div></td></tr></table>';
                 usr += '<div class="next next0 u' + user.id + '"></div><div class="next next1 u' + user.id + '"></div></div></div>';
-                if (users.length > 2) {
+
+                if (userpanel && userpanel.children().length > 2) {
                     $(usr).appendTo(userpanel2);
                 } else {
                     $(usr).appendTo(userpanel);
                 }
+                $('.userpanel.u' + user.id + ' .userpic').click(function() {
+                    _t.client.getUser({id: user.id}, viewer.showUser);
+                });
+                $('.userpanel.u' + user.id + ' .username').click(function() {
+                    _t.client.getUser({id: user.id}, viewer.showUser);
+                });
                 user.preview = [];
                 var curentdiv = [viewport.find('.next0.u' + user.id), viewport.find('.next1.u' + user.id)];
                 for (var a = 0; a < 2; a++) {
@@ -528,18 +557,22 @@ var TACTRIS = (function(_t) {
                         var list = '<div><table><tbody>';
                         for (var i in data) {
                             var index = Number(i) + 1;
-                            data[i].name = data[i].name.replace(/<(?:.|\n)*?>/gm, '');
+                            data[i].name
+                            data[i].id = data[i]._id.toString();
                             var me = '';
-                            if (data[i]._id.toString() === user.id) {
+                            if (data[i].id === user.id) {
                                 me = 'me'
                             }
-                            // list += '<div>' + data[i].name + '<span>' + data[i].hiscore + '</span></div>'
-                            list += '<tr class="' + me + '"><td class="place">' + index + '</td><td>' + data[i].name + '</td><td class="hiscore">' + data[i].hiscore + '</td></tr>';
+                            list += '<tr class="' + me + '"><td class="place">' + index + '</td><td class="username " userid="' + data[i].id + '">' + data[i].name + '</td><td class="hiscore">' + data[i].hiscore + '</td></tr>';
                         }
                         list += '</tbody></table></div>';
 
+                        $('#leaderboard').html(list).find('.username').click(function() {
+                            var userid = $(this).attr('userid');
+                            _t.client.getUser({id: userid}, viewer.showUser);
+                        });
 
-                        $('#leaderboard').html(list);
+
                     } else {
                         $('#leaderboard').addClass('hide');
                         $('.uibutton.leaderboard').removeClass('active');
@@ -676,6 +709,14 @@ var TACTRIS = (function(_t) {
                 socket.emit('syncstate', function(data) {
                     callback(data);
                 })
+            }
+            client.getUser = function(d, callback) {
+                socket.emit('getuser', d, function(data) {
+                    if (callback) {
+                        callback(data);
+                    }
+                })
+
             }
             client.getSystemInfo = function(callback) {
                 socket.emit('systeminfo', function(data) {

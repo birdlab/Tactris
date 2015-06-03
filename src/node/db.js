@@ -2,7 +2,9 @@
  * Created by Bird on 28.02.15.
  */
 var options = require('./options.json');
-var mongoClient = require('mongodb').MongoClient;
+var mongodb = require('mongodb');
+var mongoClient = mongodb.MongoClient;
+var objectId = mongodb.ObjectID;
 var sanitizer = require('sanitizer');
 var User = require('./user.js').User;
 
@@ -61,16 +63,21 @@ exports.getSessionUser = function(data, callback) {
 exports.getUser = function(data, callback) {
     if (db) {
         var collection = db.collection('user');
-
-        collection.findOne({uid: data._id}, function(err, docs) {
+        var req = {};
+        if (data._id) {
+            req = {uid: data._id}
+        }
+        if (data.dbid) {
+            req = {_id:new objectId(data.dbid)}
+        }
+        collection.findOne(req, function(err, docs) {
+            console.log(err, docs);
             if (docs) {
                 var user = new User(docs);
                 callback({'user': user});
-
             } else {
                 callback({error: {message: 'notfound', code: 404}});
             }
-
         });
     } else {
         callback({error: 'db fail'});

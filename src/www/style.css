@@ -280,16 +280,41 @@ small {
     width: 500px;
     font-size: 24px;
     z-index: 150;
+    background-color: rgba(0, 0, 0, 0.5);
 }
 
 #gameover {
-    background-color: rgba(0, 0, 0, 0.5);
+
+}
+
+#profile {
+    color: #ffffff;
+    text-align: left;
+}
+
+#profile .inside {
+    padding: 20px;
+    font-size: 16px;
+}
+
+#profile .userpic {
+    display: none;
+}
+
+#profile .username {
+    font-size: 24px;
+    padding-bottom: 10px;
+}
+
+.infopanel .close {
+    content: url(img/close.png);
+    float: right;
+    padding: 10px;
 }
 
 #leaderboard {
     font-size: 18px;
     overflow-y: scroll;
-    background-color: rgba(0, 0, 0, 0.5);
 }
 
 #leaderboard table {
@@ -362,9 +387,11 @@ a {
 .uibutton.leaderboard {
     content: url(img/leaderboard2.png);
 }
+
 .uibutton.personal {
     content: url(img/personal.png);
 }
+
 .uibutton.shared {
     content: url(img/shared.png);
 }
@@ -426,4 +453,14 @@ a {
     bottom: 50px;
     left: 516px;
     font-size: 10px;
+}
+
+.username {
+    cursor: pointer;
+    text-decoration: underline;
+
+}
+
+.userpic {
+    cursor: pointer;
 }

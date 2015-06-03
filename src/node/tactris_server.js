@@ -37,33 +37,32 @@ var sortByActivity = function(mass) {
 
 var bindcommands = function(socket) {
     socket.on('shutdown', function(data) {
-        if (socket.user) {
-            if (socket.user.dbdata._id.toString() === "555e90116e88debb335b91cd") {
-                var timeout = 2000;
-                if (data.timeout) {
-                    timeout = data.timeout;
-                }
-                io.emit('alert', data);
-                if (data.reason) {
-                    console.log(data.reason);
+        if (socket.user && socket.user.dbdata._id.toString() === "555e90116e88debb335b91cd") {
+            var timeout = 2000;
+            if (data.timeout) {
+                timeout = data.timeout;
+            }
+            io.emit('alert', data);
+            if (data.reason) {
+                console.log(data.reason);
+            }
+            setTimeout(function() {
+                for (var g in games) {
+                    games[g].save();
                 }
                 setTimeout(function() {
-                    for (var g in games) {
-                        games[g].save();
-                    }
-                    setTimeout(function() {
-                        process.exit();
-                    }, 3000);
+                    process.exit();
+                }, 3000);
 
-                }, timeout);
-            }
+            }, timeout);
         }
+
     })
     socket.on('getleaderboard', function(data, callback) {
         if (data.type) {
             db.getLeaderboard({type: data.type}, callback);
         }
-    })
+    });
     socket.on('blur', function() {
         if (socket.currentGame) {
             socket.currentGame.blurUser(socket);
@@ -71,13 +70,22 @@ var bindcommands = function(socket) {
     });
     socket.on('getuser', function(data, callback) {
         if (data.id) {
+            console.log('geting user ' + data.id);
             for (var u in users) {
                 if (data.id === users[u].dbdata._id.toString()) {
+                    console.log('finded');
                     users[u].fullData(callback);
                     return;
                 }
             }
-            db.getUser()
+            db.getUser({dbid: data.id}, function(data) {
+                if (data.user) {
+                    if (callback) {
+                        data.user.fullData(callback);
+
+                    }
+                }
+            });
         }
     });
     socket.on('syncstate', function(callback) {
@@ -161,8 +169,7 @@ var bindcommands = function(socket) {
 
             }
         }
-    )
-    ;
+    );
 
 }
 
@@ -225,7 +232,7 @@ io.on('connection', function(socket) {
                     if (d.user.getSessionId(socket) === data.s) {
                         var finded = false;
                         for (var u in users) {
-                            if (users[u].dbdata._id.toString() === data.user.dbdata._id.toString()) {
+                            if (users[u].dbdata._id.toString() === d.user.dbdata._id.toString()) {
                                 socket.user = users[u];
                                 console.log('finded');
                                 finded = true;
