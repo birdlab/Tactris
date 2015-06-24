@@ -294,11 +294,24 @@ small {
 
 #profile .inside {
     padding: 20px;
-    font-size: 16px;
+    font-size: 14px;
 }
 
 #profile .userpic {
-    display: none;
+    float: left;
+    width: 130px;
+    height: 130px;
+}
+
+#profile .stats {
+    display: inline-block;
+    padding-left: 20px;
+}
+
+#profile .userpic .tactris-block {
+    width: 100%;
+    height: 100%;
+    left: 0px;
 }
 
 #profile .username {
@@ -306,10 +319,18 @@ small {
     padding-bottom: 10px;
 }
 
+#profile .self_options {
+    padding-top:  30px;
+}
+#profile .self_options .check {
+    font-size:  20px;
+}
+
 .infopanel .close {
     content: url(img/close.png);
     float: right;
     padding: 10px;
+    cursor: pointer;
 }
 
 #leaderboard {
@@ -423,6 +444,7 @@ a {
     color: #aaa;
     font-size: 14px;
     position: inherit;
+    padding-left: 20px;
 
 }
 
@@ -430,7 +452,6 @@ a {
     padding: 9px;
     float: left;
     text-align: center;
-    padding-left: 10%;
 }
 
 #prline .menuitem:hover {
@@ -463,4 +484,18 @@ a {
 
 .userpic {
     cursor: pointer;
+}
+
+#colorline {
+
+    width: 100%;
+    height: 20px;
+    margin: 1px;
+
+    background: -moz-linear-gradient(left, #ff0000 0%, #ffff00 17%, #00ff00 33%, #00ffff 50%, #0000ff 67%, #ff00ff 83%, #ff0000 100%);
+    background: -ms-linear-gradient(left, #ff0000 0%, #ffff00 17%, #00ff00 33%, #00ffff 50%, #0000ff 67%, #ff00ff 83%, #ff0000 100%);
+    background: -o-linear-gradient(left, #ff0000 0%, #ffff00 17%, #00ff00 33%, #00ffff 50%, #0000ff 67%, #ff00ff 83%, #ff0000 100%);
+    background: -webkit-gradient(linear, left top, left bottom, from(#ff0000), color-stop(0.17, #ffff00), color-stop(0.33, #00ff00), color-stop(0.5, #00ffff), color-stop(0.67, #0000ff), color-stop(0.83, #ff00ff), to(#ff0000));
+    background: -webkit-linear-gradient(left, #ff0000 0%, #ffff00 17%, #00ff00 33%, #00ffff 50%, #0000ff 67%, #ff00ff 83%, #ff0000 100%);
+    background: linear-gradient(left, #ff0000 0%, #ffff00 17%, #00ff00 33%, #00ffff 50%, #0000ff 67%, #ff00ff 83%, #ff0000 100%);
 }

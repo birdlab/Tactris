@@ -8,6 +8,8 @@ function User(data) {
     this.dbdata.totalgames = data.totalgames || 0;
     this.dbdata.showsocial = data.showsocial || 0;
     this.dbdata.name = data.name.replace(/<(?:.|\n)*?>/gm, '');
+    this.dbdata.color = data.color || Math.random();
+
 }
 
 
@@ -56,6 +58,7 @@ User.prototype.minimize = function() {
         name: this.dbdata.name,
         regdate: this.dbdata.regdate,
         exp: this.dbdata.exp,
+        color: this.dbdata.color,
         hiscore: this.dbdata.hiscore
     }
     if (this.dbdata.showsocial) {
@@ -68,6 +71,7 @@ User.prototype.fullData = function(callback) {
     var obj = {
         id: this.dbdata._id.toString(),
         name: this.dbdata.name,
+        color: this.dbdata.color,
         regdate: this.dbdata.regdate,
         exp: this.dbdata.exp,
         hiscore: this.dbdata.hiscore,

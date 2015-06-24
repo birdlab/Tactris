@@ -57,7 +57,18 @@ var bindcommands = function(socket) {
             }, timeout);
         }
 
-    })
+    });
+    socket.on('saveuser', function(data) {
+        if (data.id && socket.user && socket.user.dbdata._id.toString() === data.id) {
+            if (data.color) {
+                socket.user.dbdata.color = data.color;
+            }
+            if (socket.currentGame) {
+                socket.currentGame.updateUser(socket.user);
+            }
+        }
+
+    });
     socket.on('getleaderboard', function(data, callback) {
         if (data.type) {
             db.getLeaderboard({type: data.type}, callback);
@@ -108,7 +119,7 @@ var bindcommands = function(socket) {
                 var game = new SharedGame({dim: 10});
                 opengames.push(game);
                 game.addPlayer(socket, callback);
-                io.emit('newshared', {id: game.id, user: {_id: socket.user.dbdata._id.toString(), name: socket.user.dbdata.name}})
+                io.emit('newshared', {id: game.id, user: {_id: socket.user.dbdata._id.toString(), name: socket.user.dbdata.name}, systemdata: systemdata() })
             }
             var createpersonal = function() {
                 var game = new SharedGame({dim: 10, personal: true, save: socket.user.dbdata.game});
@@ -170,7 +181,6 @@ var bindcommands = function(socket) {
             }
         }
     );
-
 }
 
 var removeSocket = function(socket, callback) {
