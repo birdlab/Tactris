@@ -228,6 +228,8 @@ small {
 
 #pole {
     position: relative;
+    width: 500px;
+    height: 500px;
 }
 
 .loginbutton {
@@ -322,10 +324,11 @@ small {
 }
 
 #profile .self_options {
-    padding-top:  30px;
+    padding-top: 30px;
 }
+
 #profile .self_options .check {
-    font-size:  20px;
+    font-size: 20px;
 }
 
 .infopanel .close {

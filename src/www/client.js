@@ -86,8 +86,8 @@ var TACTRIS = (function(_t) {
 
             if (navigator.userAgent.match('Firefox')) {
                 console.log(navigator.userAgent);
-                $('#start').addClass('hide');
-                $('<p>Тысяча извинений, но я не умею в Firefox, а Firefox не умеет в тактрис. Используй Chrome или его братьев</p>').appendTo($('#disclaimer'));
+               // $('#start').addClass('hide');
+               // $('<p>Тысяча извинений, но я не умею в Firefox, а Firefox не умеет в тактрис. Используй Chrome или его братьев</p>').appendTo($('#disclaimer'));
             }
 
 ///////////////////////////////////////////////
