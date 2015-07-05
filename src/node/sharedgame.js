@@ -356,7 +356,7 @@ function Game(data) {
     if (data.dim) {
         this.dimension = data.dim;
     }
-    this.id = Math.round(Math.random() * 13034934);
+    this.id =makeid();
     this.pole = [];
     this.sockets = [];
     this.slots = [];
@@ -734,6 +734,7 @@ Game.prototype.addPlayer = function(socket, callback) {
     socket.currents = slot.currents;
     socket.blured = false;
     var initData = {};
+    initData.id=this.id;
     initData.users = [];
     for (var u in this.sockets) {
         var userdata = {
@@ -858,4 +859,15 @@ function setnext(nextfigure, curents, index) {
     }
     nextfigure.figure = refs[hr];
     nextfigure.refindex = hr;
+}
+
+function makeid()
+{
+    var text = "";
+    var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+
+    for( var i=0; i < 6; i++ )
+        text += possible.charAt(Math.floor(Math.random() * possible.length));
+
+    return text;
 }

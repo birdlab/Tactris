@@ -11,6 +11,7 @@ var users = [];
 var debug = false;
 var waitforshared = [];
 
+
 var systemdata = function() {
 
     var data = {
@@ -119,7 +120,8 @@ var bindcommands = function(socket) {
                 var game = new SharedGame({dim: 10});
                 opengames.push(game);
                 game.addPlayer(socket, callback);
-                io.emit('newshared', {id: game.id, user: {_id: socket.user.dbdata._id.toString(), name: socket.user.dbdata.name}, systemdata: systemdata() })
+                emitglobal({newshared: {id: game.id, user: {_id: socket.user.dbdata._id.toString(), name: socket.user.dbdata.name}}});
+
             }
             var createpersonal = function() {
                 var game = new SharedGame({dim: 10, personal: true, save: socket.user.dbdata.game});
@@ -183,6 +185,10 @@ var bindcommands = function(socket) {
     );
 }
 
+var emitglobal = function(e) {
+    io.emit('globalevent', {event: e, systemdata: systemdata()});
+}
+
 var removeSocket = function(socket, callback) {
     if (socket.currentGame) {
         socket.currentGame.removePlayer(socket, function() {
@@ -197,6 +203,7 @@ var removeSocket = function(socket, callback) {
                     for (var og in opengames) {
                         if (opengames[og] == socket.currentGame) {
                             opengames.splice(og, 1);
+                            emitglobal({});
                         }
                     }
 
@@ -220,6 +227,7 @@ var removeUser = function(user) {
             for (var u in users) {
                 if (user == users[u]) {
                     users.splice(u, 1);
+                    emitglobal({});
                 }
             }
         }
@@ -278,81 +286,90 @@ io.on('connection', function(socket) {
                 });
             } else {
                 var opt = {
-                    host: '46.165.246.208',
+                    host: 'ulogin.ru',
                     port: 80,
                     path: '/token.php?host=http://birdlab.ru&token=' + data.t
                 };
                 http.get(opt,function(res) {
-                    //  console.log(res.statusCode);
                     if (res.statusCode == 200) {
+                        var str = '';
                         res.on('data', function(chunk) {
-                            var parsedData = JSON.parse(chunk);
-                            //   console.log('parsed from ulogin - ', parsedData);
-                            if (parsedData.uid) {
+                            console.log(chunk);
+                            str += chunk;
+                        });
 
-                                db.getSocialUser(parsedData, function(data) {
-                                    if (data) {
-                                        if (data.newuser) {
-                                            socket.on('signup', function(data, callback) {
-                                                console.log(data);
-                                                if (data.n) {
-                                                    parsedData.name = data.n;
-                                                    db.createNewUser(parsedData, function(d) {
-                                                        if (d.user) {
-                                                            socket.user = d.user;
-                                                            users.push(socket.user);
-                                                            socket.user.setSessionId(socket);
-                                                            socket.user.save();
-                                                            bindcommands(socket);
-                                                            var userdata = socket.user.minimize();
-                                                            userdata.sessionid = socket.user.dbdata.sessionid;
-                                                            callback({user: userdata, systemdata: systemdata()});
-                                                        }
+                        res.on('end', function() {
+                            console.log(str);
+                            if (str.length) {
+                                var parsedData = JSON.parse(str);
+                                console.log('parsed from ulogin - ', parsedData);
+                                if (parsedData.uid) {
+                                    db.getSocialUser(parsedData, function(data) {
+                                        if (data) {
+                                            if (data.newuser) {
+                                                socket.on('signup', function(data, callback) {
+                                                    console.log(data);
+                                                    if (data.n) {
+                                                        parsedData.name = data.n;
+                                                        db.createNewUser(parsedData, function(d) {
+                                                            if (d.user) {
+                                                                socket.user = d.user;
+                                                                users.push(socket.user);
+                                                                socket.user.setSessionId(socket);
+                                                                socket.user.save();
+                                                                bindcommands(socket);
+                                                                var userdata = socket.user.minimize();
+                                                                userdata.sessionid = socket.user.dbdata.sessionid;
+                                                                callback({user: userdata, systemdata: systemdata()});
+                                                            }
 
-                                                    });
-                                                }
-                                            });
-                                            callback({newuser: parsedData.first_name + ' ' + parsedData.last_name});
-                                        }
-                                        if (data.user) {
-                                            var finded = false;
-                                            for (var u in users) {
-                                                if (users[u].dbdata._id.toString() === data.user.dbdata._id.toString()) {
-                                                    socket.user = users[u];
-                                                    console.log('finded');
-                                                    finded = true;
-                                                    break
-                                                }
+                                                        });
+                                                    }
+                                                });
+                                                callback({newuser: parsedData.first_name + ' ' + parsedData.last_name});
                                             }
-                                            if (!finded) {
+                                            if (data.user) {
+                                                var finded = false;
+                                                for (var u in users) {
+                                                    if (users[u].dbdata._id.toString() === data.user.dbdata._id.toString()) {
+                                                        socket.user = users[u];
+                                                        console.log('finded');
+                                                        finded = true;
+                                                        break
+                                                    }
+                                                }
+                                                if (!finded) {
+                                                    socket.user = data.user;
+                                                    users.push(socket.user);
+                                                }
                                                 socket.user = data.user;
+                                                socket.user.setSessionId(socket);
+                                                socket.user.save();
                                                 users.push(socket.user);
+                                                bindcommands(socket);
+                                                var userdata = socket.user.minimize();
+                                                userdata.sessionid = socket.user.dbdata.sessionid;
+                                                callback({user: userdata, systemdata: systemdata()});
                                             }
-                                            socket.user = data.user;
-                                            socket.user.setSessionId(socket);
-                                            socket.user.save();
-                                            users.push(socket.user);
-                                            bindcommands(socket);
-                                            var userdata = socket.user.minimize();
-                                            userdata.sessionid = socket.user.dbdata.sessionid;
-                                            callback({user: userdata, systemdata: systemdata()});
                                         }
-                                    }
-                                });
+                                    });
 
+                                }
+                            } else {
+                                callback({error: str});
                             }
 
 
                         });
 
                     } else {
-                        callback({error: res.statusCode});
+                        console.log(res);
+                        callback({error: res});
                     }
                 }).on('error', function(e) {
                         console.log('error - ', e);
                         callback({error: e.message});
                     });
-                console.log('request', opt, 'sended...');
             }
 
         }
