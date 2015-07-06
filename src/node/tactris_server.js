@@ -6,6 +6,7 @@ var User = require('./user.js').User;
 //var PGame = require('./personalgame.js').Game;
 var SharedGame = require('./sharedgame.js').Game;
 var opengames = [];
+var directgames = [];
 var games = [];
 var users = [];
 var debug = false;
@@ -17,7 +18,8 @@ var systemdata = function() {
     var data = {
         'users': [],
         'games': games.length,
-        'opengames': opengames.length
+        'opengames': opengames.length,
+        'directgames': directgames.length
     };
     for (var u in users) {
         data.users.push(users[u].minimize());
@@ -123,6 +125,11 @@ var bindcommands = function(socket) {
                 emitglobal({newshared: {id: game.id, user: {_id: socket.user.dbdata._id.toString(), name: socket.user.dbdata.name}}});
 
             }
+            var createdirect = function() {
+                var game = new SharedGame({dim: 10, direct:true});
+                directgames.push(game);
+                game.addPlayer(socket, callback);
+            }
             var createpersonal = function() {
                 var game = new SharedGame({dim: 10, personal: true, save: socket.user.dbdata.game});
                 games.push(game);
@@ -139,7 +146,65 @@ var bindcommands = function(socket) {
                     createshared();
                 });
             }
+            if (data.gt == 'newdirect') {
+                removeSocket(socket, function() {
+                    createdirect();
+                });
+            }
+            if (data.gt == 'direct') {
+                if (data.id) {
+                    var finded = false;
+                    for (var g in opengames) {
+                        if (opengames[g].id === data.id) {
+                            if (opengames[g].sockets.length < 4) {
+                                for (var s in opengames[g].sockets) {
+                                    if (opengames[g].sockets[s].user.dbdata._id.toString() === socket.user.dbdata._id.toString()) {
+                                        finded = true;
+                                        callback({error: {reason: 'ingame'}});
+                                        break;
+                                    } else {
+                                        opengames[g].addPlayer(socket, callback);
+                                        break;
+                                    }
+                                }
+                            } else {
+                                finded = true;
+                                callback({error: {reason: 'fullgame'}});
+                                break;
+                            }
+                        }
+                    }
+                    if (!finded) {
+                        for (var g in directgames) {
+                            if (directgames[g].id === data.id) {
+                                if (directgames[g].sockets.length < 4) {
+                                    for (var s in directgames[g].sockets) {
+                                        if (directgames[g].sockets[s].user.dbdata._id.toString() === socket.user.dbdata._id.toString()) {
+                                            ingame = true;
+                                            callback({error: {reason: 'ingame'}});
+                                            break;
+                                        } else {
+                                            directgames[g].addPlayer(socket, callback);
+                                            break;
+                                        }
+                                    }
+                                } else {
+                                    finded = true;
+                                    callback({error: {reason: 'fullgame'}});
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                    if (!finded) {
+                        callback({error: {reason: 'notgame'}});
+                    }
 
+                } else {
+                    callback({error: {reason: 'notgame'}});
+                }
+
+            }
             if (data.gt == 'open') {
                 var finded = false;
 
@@ -204,6 +269,14 @@ var removeSocket = function(socket, callback) {
                         if (opengames[og] == socket.currentGame) {
                             opengames.splice(og, 1);
                             emitglobal({});
+                            break;
+                        }
+                    }
+                    for (var ogg in directgames) {
+                        if (directgames[ogg] == socket.currentGame) {
+                            directgames.splice(ogg, 1);
+                            emitglobal({});
+                            break;
                         }
                     }
 

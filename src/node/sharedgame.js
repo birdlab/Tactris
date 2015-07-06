@@ -351,12 +351,17 @@ function Game(data) {
         this.personal = true;
         console.log('start personal');
     } else {
-        console.log('start open');
+        if (data.direct) {
+            this.direct = true;
+            console.log('start direct');
+        } else {
+            console.log('start open');
+        }
     }
     if (data.dim) {
         this.dimension = data.dim;
     }
-    this.id =makeid();
+    this.id = makeid();
     this.pole = [];
     this.sockets = [];
     this.slots = [];
@@ -424,7 +429,7 @@ Game.prototype.insertFigure = function(socket, callback) {
                 sf.state = 'placed';
                 this.pole[sf.y][sf.x] = 1;
             }
-            this.emit('placed', socket.figure);
+            this.broadcast({'placed': socket.figure});
             socket.figure = [];
             socket.score += 4;
             setnext(socket.currents[socket.checkindex], socket.currents);
@@ -563,8 +568,7 @@ Game.prototype.checkLines = function() {
         }
     }
     if (outlines.length) {
-        this.broadcast();
-        this.emit('outlines', outlines);
+        this.broadcast({'outlines': outlines});
         var socket = this.lastmoved;
         var addscore = 10 * (outlines.length * outlines.length + this.sockets.length);
         var addxp = 10 * (outlines.length * outlines.length);
@@ -698,12 +702,13 @@ Game.prototype.emit = function(event, data) {
 Game.prototype.broadcast = function(change) {
     if (change) {
         this.changes.push(change);
-        if (change.state == 'placed') {
-            this.pole[change.y][change.x] = 1;
-        } else {
-            this.pole[change.y][change.x] = 0;
+        if (change.state) {
+            if (change.state == 'placed') {
+                this.pole[change.y][change.x] = 1;
+            } else {
+                this.pole[change.y][change.x] = 0;
+            }
         }
-        //  this.pole[change.y][change.x].state = change.state;
     }
     var gm = this;
     if (this.changes.length) {
@@ -734,7 +739,7 @@ Game.prototype.addPlayer = function(socket, callback) {
     socket.currents = slot.currents;
     socket.blured = false;
     var initData = {};
-    initData.id=this.id;
+    initData.id = this.id;
     initData.users = [];
     for (var u in this.sockets) {
         var userdata = {
@@ -861,13 +866,13 @@ function setnext(nextfigure, curents, index) {
     nextfigure.refindex = hr;
 }
 
-function makeid()
-{
+function makeid() {
     var text = "";
     var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
 
-    for( var i=0; i < 6; i++ )
+    for (var i = 0; i < 6; i++) {
         text += possible.charAt(Math.floor(Math.random() * possible.length));
+    }
 
     return text;
 }
