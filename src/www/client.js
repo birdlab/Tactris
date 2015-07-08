@@ -39,7 +39,6 @@ var TACTRIS = (function(_t) {
                     try {
                         var value = localStorage.getItem(key)
                         if (value) {
-                            //console.log(value);
                             retrievedObj = JSON.parse(value);
                         }
                     }
@@ -82,12 +81,6 @@ var TACTRIS = (function(_t) {
             }
             if (window.location.pathname.match('/game') && window.location.hash.match('\#(.*)$')) {
                 router.gameid = window.location.hash.match('\#(.*)$')[1];
-            }
-
-            if (navigator.userAgent.match('Firefox')) {
-                console.log(navigator.userAgent);
-                // $('#start').addClass('hide');
-                // $('<p>Тысяча извинений, но я не умею в Firefox, а Firefox не умеет в тактрис. Используй Chrome или его братьев</p>').appendTo($('#disclaimer'));
             }
 
 ///////////////////////////////////////////////
@@ -150,7 +143,6 @@ var TACTRIS = (function(_t) {
                 style += ' ".uid' + id + ' span": ';
                 style += '{ "color": "' + rgbhex + '"}}';
 
-                console.log(style);
                 return style
 
             }
@@ -167,7 +159,6 @@ var TACTRIS = (function(_t) {
                 }
             }
             colorline.onmouseup = function(e) {
-                console.log('saving...');
                 _t.client.saveUser();
             }
 
@@ -211,7 +202,6 @@ var TACTRIS = (function(_t) {
                         {
                             label: 'Найти открытую игру',
                             action: function() {
-                                console.log('connect');
                                 _t.client.getGame('open');
                             }
                         },
@@ -342,7 +332,6 @@ var TACTRIS = (function(_t) {
 
 
                 viewer.updateUser = function(data) {
-                    console.log(data);
                     if (data.score) {
                         var scoreval = $('.score.uid' + data.userid + ' span.value');
                         var inc = $('.score.uid' + data.userid + ' span.increment');
@@ -359,11 +348,7 @@ var TACTRIS = (function(_t) {
                         });
                     }
                     if (data.color) {
-                        console.log(data);
                         for (var u in users) {
-                            console.log('in list ' + users[u].id);
-                            console.log('from server ' + data.userid);
-                            console.log('data.color ' + data.color);
                             if (users[u].id == data.userid) {
                                 users[u].color = data.color;
                                 if (users[u].spray) {
@@ -443,7 +428,7 @@ var TACTRIS = (function(_t) {
                         for (var out in outlines) {
                             var line = outlines[out];
                             for (var c in line) {
-                                console.log(line);
+
                                 for (var c in pole[line.line]) {
                                     if (line.dir === 'x') {
                                         pole[line.line][c].setState('empty');
@@ -543,14 +528,14 @@ var TACTRIS = (function(_t) {
                 }
 
                 viewer.showUser = function(data) {
-                    console.log(data);
                     $('.infopanel').addClass('hide');
                     $('#profile').removeClass('hide');
-
                     $('.uibutton.leaderboard').removeClass('active');
                     data.id = data.id.toString();
-                    console.log(user);
                     $('#profile .userpic').removeClassWild('uid*').addClass('uid' + data.id);
+                    if (data.color) {
+                        spray(stylegen(data.id, data.color));
+                    }
                     if (data.id === user.id) {
                         $('#colorline').removeClass('hide');
 
@@ -562,9 +547,13 @@ var TACTRIS = (function(_t) {
                     }
                     $('#profile .close').click(function() {
                         $('#profile').addClass('hide');
-                    })
-                    //  document.styleSheets[0].insertRule(".me {font-size: 10px;}", 0);
-                    $('#profile .username').html(data.name);
+                    });
+
+                    if (data.profile) {
+                        $('#profile .username').html('<a href="' + data.profile + '" target="_blank">' + data.name + '</a>');
+                    } else {
+                        $('#profile .username').html(data.name);
+                    }
                     $('#profile').find('.regdate span').html(data.regdate);
                     $('#profile').find('.exp span').html(data.exp);
                     $('#profile').find('.hiscore span').html(data.hiscore);
@@ -573,8 +562,11 @@ var TACTRIS = (function(_t) {
                     $('#profile').find('.hiscoreplace span').html(data.hiscoreplace);
                     if (data.id === user.id) {
                         $('#profile').find('.self_options').removeClass('hide');
-                        console.log(data.profile);
-                        $('#profile .showsocial').checked(data.profile);
+                        $('#profile .showsocial').prop('checked', data.profile);
+                        $('#profile .showsocial').change(function() {
+                            user.showsocial = $(this).is(':checked');
+                            _t.client.saveUser();
+                        });
 
                     } else {
                         $('#profile .self_options').addClass('hide');
@@ -583,13 +575,9 @@ var TACTRIS = (function(_t) {
                 }
                 viewer.addUser = function(user) {
                     users.push(user);
-                    console.log(user);
                     if (user.color) {
-                        console.log('user.color ' + user.color);
-                        var h = user.color;
                         user.spray = spray(stylegen(user.id, user.color));
                     }
-
 
                     var usr = '<div class="userpanel uid' + user.id + '"><table class="topinfo"><tr>';
                     usr += '<td class="userpic uid' + user.id + '"><div class="tactris-block active"></div></td><td class="stats">';
@@ -646,7 +634,6 @@ var TACTRIS = (function(_t) {
                                 // Animation complete.
                             });
                         }
-                        console.log(data.id, ' change state');
                         if (data.id == user.id) {
                             if (data.blur === false) {
                                 _t.client.syncState(function(data) {
@@ -657,7 +644,6 @@ var TACTRIS = (function(_t) {
                     }
                 }
                 viewer.removeUser = function(user) {
-                    console.log(user);
                     for (var u in users) {
                         if (users[u].id === user.id) {
                             users.splice(u, 1);
@@ -703,13 +689,17 @@ var TACTRIS = (function(_t) {
                     for (j = 0; j < data.pole.length; j++) {
                         for (i = 0; i < data.pole.length; i++) {
                             var block = pole[j][i];
-                            if (data.pole[j][i] === 1) {
+                            if (data.pole[j][i] === 1 && block.state != 'placed') {
                                 block.setState('placed');
+                                console.log('error!!! - ', block);
+                                block.div.setTo(block);
                             }
-                            if (data.pole[j][i] === 0) {
+                            if (data.pole[j][i] === 0 && block.state === 'placed') {
                                 block.setState('empty');
+                                console.log('error!!! - ', block);
+                                block.div.setTo(block);
                             }
-                            block.div.setTo(block);
+
                         }
                     }
                 }
@@ -718,7 +708,7 @@ var TACTRIS = (function(_t) {
                     $('.userpanel .score span.value').html('0');
                     _t.client.syncState(function(data) {
                         viewer.fillPole(data);
-                    })
+                    });
                 }
                 viewer.showLeaderboard = function(type) {
                     var t = 'hiscore';
@@ -780,6 +770,10 @@ var TACTRIS = (function(_t) {
                     }
 
                 });
+                socket.on('chatmessage', function(message) {
+                    console.log(message);
+
+                });
                 socket.on('newuser', function(data) {
                     _t.viewer.addUser(data);
                 });
@@ -803,8 +797,12 @@ var TACTRIS = (function(_t) {
                         }
                         if (st.outlines) {
                             _t.viewer.cleanLines(st.outlines);
+                            _t.client.syncState(function(data) {
+                                _t.viewer.fillPole(data);
+                            });
                         }
                         if (st.placed) {
+                            console.log(new Date(), 'placed');
                             for (var d in st.placed) {
                                 var pnt = st.placed[d];
                                 pole[pnt.y][pnt.x].setState(pnt.state);
@@ -824,8 +822,6 @@ var TACTRIS = (function(_t) {
                 });
 
                 socket.on('gameover', function(data) {
-                    console.log('game over');
-                    console.log(data);
                     _t.viewer.showGameOver(data, function() {
                         _t.viewer.clearPole();
                     });
@@ -860,7 +856,6 @@ var TACTRIS = (function(_t) {
                         _t.viewer.showProgress('Создаем открытую игру...');
                     }
                     socket.emit('getgame', dt, function(data) {
-                        console.log('gameinfo', data);
                         if (!data.error) {
 
                             if (type == 'personal') {
@@ -909,7 +904,6 @@ var TACTRIS = (function(_t) {
                                 {
                                     label: 'Найти открытую игру',
                                     action: function() {
-                                        console.log('connect');
                                         _t.client.getGame('open');
                                     }
                                 },
@@ -932,7 +926,6 @@ var TACTRIS = (function(_t) {
                 var processlogin = function(data) {
                     if (data.newuser) {
                         _t.viewer.showNewUser(data.newuser, function(name) {
-                            console.log(name);
                             _t.viewer.showProgress('Авторизуем...');
                             socket.emit('signup', name, function(bdata) {
                                 processlogin(bdata)
@@ -944,7 +937,6 @@ var TACTRIS = (function(_t) {
                     }
 
                     if (data.user) {
-                        console.log(data);
                         if (data.user.sessionid) {
                             storage.set('sessionid', data.user.sessionid)
                         }
@@ -970,6 +962,9 @@ var TACTRIS = (function(_t) {
                     })
 
                 }
+                client.sendMessage = function(str) {
+                    socket.emit('chatmessage', {m: str});
+                }
                 client.getSystemInfo = function(callback) {
                     socket.emit('systeminfo', function(data) {
                         if (callback) {
@@ -994,13 +989,11 @@ var TACTRIS = (function(_t) {
                     }
                     ga('send', 'event', 'pick', user.name);
                     socket.emit('pick', blk, function(data) {
-                        console.log(data);
                     });
                 }
                 client.sendInsert = function() {
                     ga('send', 'event', 'install', user.name);
                     socket.emit('insert', function(data) {
-                        console.log(data);
                     });
                 }
                 client.sendBlur = function() {

@@ -61,10 +61,23 @@ var bindcommands = function(socket) {
         }
 
     });
+    socket.on('chatmessage', function(data) {
+        if (socket.user&& socket.currentGame) {
+            data.uid=socket.user.dbdata._id;
+            data.name=socket.user.dbdata.name;
+            socket.currentGame.chat.postMessage(data);
+        }
+
+    });
     socket.on('saveuser', function(data) {
         if (data.id && socket.user && socket.user.dbdata._id.toString() === data.id) {
             if (data.color) {
                 socket.user.dbdata.color = data.color;
+            }
+            if (data.showsocial) {
+                socket.user.dbdata.showsocial = true;
+            } else {
+                socket.user.dbdata.showsocial = false;
             }
             if (socket.currentGame) {
                 socket.currentGame.updateUser(socket.user);
@@ -95,7 +108,7 @@ var bindcommands = function(socket) {
             db.getUser({dbid: data.id}, function(data) {
                 if (data.user) {
                     if (callback) {
-                        data.user.fullData(callback);
+                        data.user.fullData(callback, socket.user && socket.user.dbdata._id.toString() === "555e90116e88debb335b91cd");
 
                     }
                 }
@@ -126,7 +139,7 @@ var bindcommands = function(socket) {
 
             }
             var createdirect = function() {
-                var game = new SharedGame({dim: 10, direct:true});
+                var game = new SharedGame({dim: 10, direct: true});
                 directgames.push(game);
                 game.addPlayer(socket, callback);
             }
@@ -205,9 +218,10 @@ var bindcommands = function(socket) {
                 }
 
             }
+
+
             if (data.gt == 'open') {
                 var finded = false;
-
                 removeSocket(socket, function() {
                     if (opengames.length) {
                         var freeslots = [];

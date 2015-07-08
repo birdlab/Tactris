@@ -1,4 +1,5 @@
 var db = require('./db.js');
+var Chat = require('./chat.js').Chat;
 
 var refs = refs = [
     [
@@ -387,6 +388,9 @@ function Game(data) {
             this.slots[s].free = true;
         }
     }
+
+    this.chat = new Chat({game: this});
+
 }
 
 Game.prototype.getPoleState = function(callback) {

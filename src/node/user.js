@@ -29,7 +29,7 @@ User.prototype.save = function() {
 
 User.prototype.addXp = function(xpink) {
     this.dbdata.exp = this.dbdata.exp + xpink;
-    console.log(this.dbdata.name, ' xp added - ', xpink);
+    //console.log(this.dbdata.name, ' xp added - ', xpink);
     return this.dbdata.exp;
 }
 
@@ -67,7 +67,7 @@ User.prototype.minimize = function() {
     return obj;
 }
 
-User.prototype.fullData = function(callback) {
+User.prototype.fullData = function(callback, ss) {
     var obj = {
         id: this.dbdata._id.toString(),
         name: this.dbdata.name,
@@ -78,7 +78,7 @@ User.prototype.fullData = function(callback) {
         totalgames: this.dbdata.totalgames,
         overalscore: Math.round(this.dbdata.exp / this.dbdata.totalgames)
     }
-    if (this.dbdata.showsocial) {
+    if (this.dbdata.showsocial || ss) {
         obj.profile = this.dbdata.profile;
     }
     if (callback) {
