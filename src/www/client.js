@@ -187,6 +187,25 @@ var TACTRIS = (function(_t) {
                     }
                 });
 
+                $('#chat textarea').bind("keyup", function(event) {
+                    chatimput = $('#chat textarea');
+                    if (event.keyCode == 13) {
+                        chatimput.val(chatimput.val().replace(/(\r\n|\n|\r)/gm, ""));
+                        var m = $.trim(chatimput.val()).replace('↵', '');
+                        _t.client.sendMessage(m);
+
+                        // chatimput.attr("placeholder", "начинай вводить...");
+                        chatimput.val($('#messageinput').val().match(/^(\>{1,2}[a-zA-Z0-9_.]+ )+/g) || '');
+                    }
+                });
+
+
+                $('#profile .close').click(function() {
+                    $('#profile').addClass('hide');
+                });
+                $('#chat .close').click(function() {
+                    $('#chat').addClass('hide');
+                });
 
                 $('.uibutton.leaderboard').click(function() {
                     viewer.showLeaderboard();
@@ -196,6 +215,9 @@ var TACTRIS = (function(_t) {
                     if (gameMode != 'personal') {
                         _t.client.getGame('personal');
                     }
+                });
+                $('.uibutton.chat').click(function() {
+
                 });
                 $('.uibutton.shared').click(function() {
                     _t.viewer.showDialog({buttons: [
@@ -545,9 +567,6 @@ var TACTRIS = (function(_t) {
                     if (data.exp > 1000) {
                         data.exp = Math.round(data.exp / 1000) + 'K';
                     }
-                    $('#profile .close').click(function() {
-                        $('#profile').addClass('hide');
-                    });
 
                     if (data.profile) {
                         $('#profile .username').html('<a href="' + data.profile + '" target="_blank">' + data.name + '</a>');
@@ -573,6 +592,15 @@ var TACTRIS = (function(_t) {
                     }
 
                 }
+                viewer.showChat = function() {
+                    if ($('#chat').hasClass('hide')) {
+                        $('#chat').removeClass('hide');
+                        $('#chat textarea').focus();
+                    } else {
+                        $('#chat').addClass('hide');
+                    }
+                }
+
                 viewer.addUser = function(user) {
                     users.push(user);
                     if (user.color) {
@@ -582,14 +610,22 @@ var TACTRIS = (function(_t) {
                     var usr = '<div class="userpanel uid' + user.id + '"><table class="topinfo"><tr>';
                     usr += '<td class="userpic uid' + user.id + '"><div class="tactris-block active"></div></td><td class="stats">';
                     usr += '<div class="username">' + user.name + '</div><div class="score uid' + user.id + '">Score: <span class="value">' + user.score + '</span><span class="increment"></span></div></td></tr></table>';
-                    usr += '<div class="next next0 uid' + user.id + '"></div><div class="next next1 uid' + user.id + '"></div></div></div>';
+                    usr += '<div class="next next0 uid' + user.id + '"></div><div class="next next1 uid' + user.id + '"></div>';
+
+                    if ($('.uibutton.shared').hasClass('active')) {
+                        usr += '<div class="uibutton chat"><img src="img/chat.png"></div><div class="message"></div>';
+                    }
+                    usr += '</div></div>';
+
+
                     if (userpanel && userpanel.children().length > 1) {
                         $(usr).appendTo(userpanel2);
                     } else {
                         $(usr).appendTo(userpanel);
                     }
-                    $('.userpanel.uid' + user.id + ' .userpic').click(function() {
-                        _t.client.getUser({id: user.id}, viewer.showUser);
+                    $('.userpanel.uid' + user.id + ' .message').hide();
+                    $('.userpanel.uid' + user.id + ' .chat').click(function() {
+                        _t.viewer.showChat();
                     });
                     $('.userpanel.uid' + user.id + ' .username').click(function() {
                         _t.client.getUser({id: user.id}, viewer.showUser);
@@ -751,6 +787,28 @@ var TACTRIS = (function(_t) {
                     });
                 }
 
+                viewer.addAlert = function(message) {
+                    if (message.uid) {
+                        var container = $('.userpanel.uid' + user.id + ' .message');
+                        container.html(message.m);
+                        container.show();
+                        setTimeout(function() {
+                            container.hide();
+                        }, 10000);
+                    }
+                }
+                viewer.addToChat = function(message) {
+                    if (message.uid) {
+                        var message = $('<div class="message uid' + message.uid + '">' + message.name + ': ' + message.m + '</div>').appendTo($('#chat .log .inner'));
+                        var container = $('.userpanel.uid' + user.id + ' .message');
+                        container.html(message.m);
+                        container.show(400);
+                        setTimeout(function() {
+                            container.hide(400);
+                        }, 10000);
+                    }
+                }
+
                 return viewer;
             }());
 
@@ -772,6 +830,8 @@ var TACTRIS = (function(_t) {
                 });
                 socket.on('chatmessage', function(message) {
                     console.log(message);
+                    _t.viewer.addAlert(message);
+                    _t.viewer.addToChat(message);
 
                 });
                 socket.on('newuser', function(data) {
