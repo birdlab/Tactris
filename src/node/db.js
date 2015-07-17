@@ -144,7 +144,6 @@ exports.saveUser = function(data, callback) {
                 }
 
             });
-            console.log(st);
         }
 
     } else {
@@ -157,7 +156,6 @@ exports.createNewUser = function(data, callback) {
         if (data.uid) {
             var collection = db.collection('user');
             collection.find({name: data.name}, function(err, docs) {
-                console.dir(docs);
                 var user = {
                     name: data.name,
                     profile: data.profile,
@@ -166,7 +164,6 @@ exports.createNewUser = function(data, callback) {
                     regdate: new Date()
                 }
                 collection.insert(user, function(err, docs) {
-                    console.dir('inserting - ', docs);
                     if (docs[0]) {
                         var newuser = new User(docs[0]);
                         callback({'user': newuser});

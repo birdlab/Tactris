@@ -389,7 +389,6 @@ io.on('connection', function(socket) {
                             console.log(str);
                             if (str.length) {
                                 var parsedData = JSON.parse(str);
-                                console.log('parsed from ulogin - ', parsedData);
                                 if (parsedData.uid) {
                                     db.getSocialUser(parsedData, function(data) {
                                         if (data) {
