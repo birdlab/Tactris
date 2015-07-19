@@ -398,12 +398,25 @@ Game.prototype.getPoleState = function(callback) {
 
 }
 
-Game.prototype.getSlot = function() {
+Game.prototype.getSlot = function(_id) {
     var find = false;
     for (var s in this.slots) {
+        console.log(s);
         if (this.slots[s].free === true) {
-            find = this.slots[s];
-            break;
+            if (this.slots[s].lastid) {
+                if (this.slots[s].lastid === _id.toString()) {
+                    find = this.slots[s];
+                    break;
+                } else {
+                    console.log('index - '+s+' reset score');
+                    find = this.slots[s];
+                    find.score = 0;
+                    break;
+                }
+            } else {
+                find = this.slots[s];
+                break;
+            }
         }
     }
     if (!find) {
@@ -733,7 +746,7 @@ Game.prototype.broadcast = function(change) {
 
 Game.prototype.addPlayer = function(socket, callback) {
     console.log(socket.user.dbdata.name + ' enter game');
-    var slot = this.getSlot();
+    var slot = this.getSlot(socket.user.dbdata._id);
     slot.socket = socket;
     slot.free = false;
     this.sockets.push(socket);
@@ -789,6 +802,7 @@ Game.prototype.removePlayer = function(socket, callback) {
             this.slots[ss].currents = socket.currents;
             this.slots[ss].score = socket.score;
             this.slots[ss].free = true;
+            this.slots[ss].lastid = socket.user.dbdata._id.toString();
         }
     }
     for (var f in socket.figure) {
