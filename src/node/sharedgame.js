@@ -514,11 +514,11 @@ Game.prototype.checkEnd = function() {
                 for (var x in this.pole) {
                     for (var y in this.pole[x]) {
                         var counter = 0;
+                        var tx = parseInt(y);
+                        var ty = parseInt(x);
                         for (var i in curent) {
                             var cx = curent[i].y;
                             var cy = curent[i].x;
-                            var tx = parseInt(y);
-                            var ty = parseInt(x);
                             if (cx + tx < this.dimension && cy + ty < this.dimension) {
                                 if (this.pole[cx + tx][cy + ty] != 1) {
                                     counter += 1;
