@@ -9,7 +9,8 @@ var sanitizer = require('sanitizer');
 var User = require('./user.js').User;
 
 var db = null;
-var path = 'mongodb://' + options.db.user + ':' + options.db.pass + '@' + options.db.host + ':' + options.db.port + '/' + options.db.db
+//var path = 'mongodb://' + options.db.user + ':' + options.db.pass + '@' + options.db.host + ':' + options.db.port + '/' + options.db.db
+var path = 'mongodb://' + options.db.host + ':' + options.db.port + '/' + options.db.db;
 console.log(path);
 
 mongoClient.connect(path, function(err, dbinstance) {
@@ -19,6 +20,52 @@ mongoClient.connect(path, function(err, dbinstance) {
     }
     console.log('error - ', err);
 });
+exports.regUser = function(data, callback) {
+    var collection = db.collection('user');
+    if (db) {
+
+        if (data.uid) {
+            collection.findOne({network: data.network, uid: data.uid}, function(err, docs) {
+                console.log(docs);
+                if (docs) {
+                    var user = new User(docs);
+                    callback({'user': user});
+                } else {
+                    callback({newuser: true});
+                }
+
+            });
+        } else {
+            callback({error: 'aouth fail'});
+        }
+
+    } else {
+        callback({error: 'db fail'});
+    }
+}
+exports.getMailUser = function(data, callback) {
+    var collection = db.collection('user');
+    if (db) {
+
+        if (data.uid) {
+            collection.findOne({network: data.network, uid: data.uid}, function(err, docs) {
+                console.log(docs);
+                if (docs) {
+                    var user = new User(docs);
+                    callback({'user': user});
+                } else {
+                    callback({newuser: true});
+                }
+
+            });
+        } else {
+            callback({error: 'aouth fail'});
+        }
+
+    } else {
+        callback({error: 'db fail'});
+    }
+}
 exports.getSocialUser = function(data, callback) {
     var collection = db.collection('user');
     if (db) {
@@ -90,24 +137,42 @@ exports.getLeaderboard = function(data, callback) {
         var searching = {hiscore: {$gte: 10}};
         var sorting = {hiscore: -1};
         console.log('db get leaders - ', data);
-        if (data.type == 'hiscore') {
-            searching = {hiscore: {$gte: 10}};
-            sorting = {hiscore: -1};
-        }
-        if (data.type == 'exp') {
-            searching = {exp: {$gte: 10}};
-            sorting = {exp: -1};
-        }
+        if (data.type == 'hioveral') {
+            collection.find({hiscore: {$gte: 10}}, {
+                fields: {
+                    _id: 1,
+                    name: 1,
+                    hiscore: 1
+                }
+            }).sort({hiscore: -1}).limit(100).toArray(function(err, docs) {
+                if (docs) {
+                    callback(docs);
+                } else {
+                    callback({error: {message: 'notfound', code: 404}});
+                }
 
+            });
 
-        collection.find(searching, {fields: {_id: 1, name: 1, hiscore: 1}}).sort(sorting).limit(100).toArray(function(err, docs) {
-            if (docs) {
-                callback(docs);
-            } else {
-                callback({error: {message: 'notfound', code: 404}});
+        } else {
+            collection=db.collection('score');
+            if (data.type=='hidaily'){
+                collection.find({score: {$gte: 10}}, {
+                    fields: {
+                        userid: 1,
+                        name: 1,
+                        score: 1
+                    }
+                }).sort({score: -1}).limit(100).toArray(function(err, docs) {
+                    if (docs) {
+                        callback(docs);
+                    } else {
+                        callback({error: {message: 'notfound', code: 404}});
+                    }
+
+                });
             }
+        }
 
-        });
     } else {
         callback({error: 'db fail'});
     }
@@ -146,6 +211,22 @@ exports.saveUser = function(data, callback) {
             });
         }
 
+    } else {
+        callback({error: 'db fail'});
+    }
+}
+exports.addScore = function(data, callback) {
+    if (db) {
+        var collection = db.collection('score');
+        if (data){
+            collection.insert(data, function(err, docs){
+                if (docs[0]) {
+                    callback({'ok': true});
+                } else {
+                    callback({'error': err});
+                }
+            });
+        }
     } else {
         callback({error: 'db fail'});
     }

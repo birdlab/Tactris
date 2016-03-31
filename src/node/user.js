@@ -9,20 +9,20 @@ function User(data) {
     this.dbdata.showsocial = data.showsocial || 0;
     this.dbdata.name = data.name.replace(/<(?:.|\n)*?>/gm, '');
     this.dbdata.color = data.color || Math.random();
-
+    console.log(this.dbdata);
 }
 
 
 User.prototype.save = function() {
-    console.log('saving', this.dbdata.game);
     if (this.dbdata.game) {
         for (var s in this.dbdata.game.slots) {
             this.dbdata.game.slots[s].free = true;
             this.dbdata.game.slots[s].socket = null;
         }
     }
+    var u=this;
     db.saveUser(this.dbdata, function(data) {
-        console.log('user saved - ', data);
+        console.log('user '+u.dbdata.name+' saved - ', data);
     });
     return this;
 }

@@ -408,7 +408,7 @@ Game.prototype.getSlot = function(_id) {
                     find = this.slots[s];
                     break;
                 } else {
-                    console.log('index - '+s+' reset score');
+                    console.log('index - ' + s + ' reset score');
                     find = this.slots[s];
                     find.score = 0;
                     break;
@@ -453,7 +453,8 @@ Game.prototype.insertFigure = function(socket, callback) {
             var nnd = {
                 newnext: {
                     figure: socket.currents[socket.checkindex].figure,
-                    index: socket.checkindex},
+                    index: socket.checkindex
+                },
                 exp: socket.user.addXp(4),
                 score: socket.score,
                 userid: socket.user.dbdata._id.toString()
@@ -489,6 +490,17 @@ Game.prototype.checkGameOver = function() {
             var so = this.sockets[s];
             if (so.user.dbdata.hiscore < so.score) {
                 so.user.dbdata.hiscore = so.score;
+            }
+            if (so.user.dbdata.network != 'guest') {
+                var dbgame = {
+                    score: so.score,
+                    name: so.user.dbdata.name,
+                    userid: so.user.dbdata._id,
+                    date: new Date()
+                }
+                db.addScore(dbgame, function(data) {
+                    console.log("saving new score - " + data);
+                });
             }
             so.user.dbdata.totalgames++;
             users.push({
@@ -829,7 +841,6 @@ Game.prototype.removePlayer = function(socket, callback) {
 }
 
 Game.prototype.blurUser = function(socket) {
-    console.log(socket.user.dbdata.name + ' blured');
     socket.blured = true;
     for (var f in socket.figure) {
         var sf = socket.figure[f];

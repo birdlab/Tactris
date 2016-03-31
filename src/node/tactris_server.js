@@ -26,7 +26,7 @@ var systemdata = function() {
     }
 
     return data;
-}
+};
 
 var sortByActivity = function(mass) {
     return mass.sort(function(a, b) {
@@ -36,7 +36,7 @@ var sortByActivity = function(mass) {
             return b.lastActive - a.lastActive;
         }
     });
-}
+};
 
 var bindcommands = function(socket) {
     socket.on('shutdown', function(data) {
@@ -62,9 +62,9 @@ var bindcommands = function(socket) {
 
     });
     socket.on('chatmessage', function(data) {
-        if (socket.user&& socket.currentGame) {
-            data.uid=socket.user.dbdata._id;
-            data.name=socket.user.dbdata.name;
+        if (socket.user && socket.currentGame) {
+            data.uid = socket.user.dbdata._id;
+            data.name = socket.user.dbdata.name;
             socket.currentGame.chat.postMessage(data);
         }
 
@@ -135,7 +135,12 @@ var bindcommands = function(socket) {
                 var game = new SharedGame({dim: 10});
                 opengames.push(game);
                 game.addPlayer(socket, callback);
-                emitglobal({newshared: {id: game.id, user: {_id: socket.user.dbdata._id.toString(), name: socket.user.dbdata.name}}});
+                emitglobal({
+                    newshared: {
+                        id: game.id,
+                        user: {_id: socket.user.dbdata._id.toString(), name: socket.user.dbdata.name}
+                    }
+                });
 
             }
             var createdirect = function() {
@@ -377,7 +382,7 @@ io.on('connection', function(socket) {
                     port: 80,
                     path: '/token.php?host=http://birdlab.ru&token=' + data.t
                 };
-                http.get(opt,function(res) {
+                http.get(opt, function(res) {
                     if (res.statusCode == 200) {
                         var str = '';
                         res.on('data', function(chunk) {
@@ -453,11 +458,45 @@ io.on('connection', function(socket) {
                         callback({error: res});
                     }
                 }).on('error', function(e) {
-                        console.log('error - ', e);
-                        callback({error: e.message});
-                    });
+                    console.log('error - ', e);
+                    callback({error: e.message});
+                });
             }
-
+        }
+        if (data.m) {
+            db.getMailUser(data.m, function(data) {
+                if (data.user) {
+                    socket.user = data.user;
+                    users.push(socket.user);
+                    bindcommands(socket);
+                    callback({user: socket.user.minimize()});
+                } else {
+                    callback({error: data});
+                }
+            });
+        }
+        if (data.mreg) {
+            db.regUser(data.m, function(data) {
+                if (data.user) {
+                    socket.user = data.user;
+                    users.push(socket.user);
+                    bindcommands(socket);
+                    callback({user: socket.user.minimize()});
+                } else {
+                    callback({error: data});
+                }
+            });
+        }
+        if (data.g) {
+            socket.user = new User({
+                name: 'Guest',
+                network: 'guest',
+                _id:0
+            });
+            console.log('new Guest connected');
+            users.push(socket.user);
+            bindcommands(socket);
+            callback({user: socket.user.minimize()});
         }
     });
 

@@ -344,7 +344,11 @@ small {
 
 #leaderboard {
     font-size: 18px;
+}
+
+#leaderboard .scroller {
     overflow-y: scroll;
+    height: 450px;
 }
 
 #leaderboard table {
@@ -601,3 +605,33 @@ a {
     padding-left: 10px;
 }
 
+#leaderboard .top-pannel {
+    width: 100%;
+    font-size: 12px;
+    height: 50px;
+    background: #000;
+    text-align: center;
+    align-content: center;
+}
+
+#leaderboard .button-switch {
+    padding: 16px;
+    padding-left: 38px;
+    padding-right: 35px;
+    float: left;
+    cursor: pointer;
+
+}
+
+#leaderboard .button-switch:hover{
+    background: #aaa;
+    color: #000;
+}
+
+#leaderboard .button-switch.active{
+    font-weight: bold;
+    background: #fff;
+    padding-left: 20px !important;
+    padding-right: 20px !important;
+    color: #000;
+}

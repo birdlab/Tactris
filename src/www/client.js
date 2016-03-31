@@ -220,33 +220,55 @@ var TACTRIS = (function(_t) {
 
                 });
                 $('.uibutton.shared').click(function() {
-                    _t.viewer.showDialog({buttons: [
-                        {
-                            label: 'Найти открытую игру',
-                            action: function() {
-                                _t.client.getGame('open');
+                    _t.viewer.showDialog({
+                        buttons: [
+                            {
+                                label: 'Найти открытую игру',
+                                action: function() {
+                                    _t.client.getGame('open');
+                                }
+                            },
+                            {
+                                label: 'Создать открытую игру',
+                                action: function() {
+                                    _t.client.getGame('newopen');
+                                }
+                            },
+                            {
+                                label: 'Создать игру по ссылке',
+                                action: function() {
+                                    _t.client.getGame('newdirect');
+                                }
                             }
-                        },
-                        {
-                            label: 'Создать открытую игру',
-                            action: function() {
-                                _t.client.getGame('newopen');
-                            }
-                        },
-                        {
-                            label: 'Создать игру по ссылке',
-                            action: function() {
-                                _t.client.getGame('newdirect');
-                            }
-                        }
-                    ]});
+                        ]
+                    });
 
                 });
                 $('.uibutton').tipsy({gravity: 's'});
 
                 $('#dialog').click(function() {
                     $(this).addClass('hide');
-                })
+                });
+
+                $('#dialog').click(function() {
+                    $(this).addClass('hide');
+                });
+
+                $('#leaderboard .button-switch').click(function() {
+                    if ($(this).hasClass('hioveral')){
+                        viewer.showLeaderboard('hioveral', true);
+                    }
+                    if ($(this).hasClass('himounth')){
+                        viewer.showLeaderboard('himounth', true);
+                    }
+                    if ($(this).hasClass('hiweek')){
+                        viewer.showLeaderboard('hiweek', true);
+                    }
+                    if ($(this).hasClass('hidaily')){
+                        viewer.showLeaderboard('hidaily', true);
+                    }
+                });
+
 
                 var newBlock = function(container) {
 
@@ -324,13 +346,19 @@ var TACTRIS = (function(_t) {
                     }
                 }
 
+
                 viewer.showLogin = function() {
-                    $('#start .inside').html(' Привет! Для начала трогни одну из кнопочек<div id="uLogin" data-ulogin="display=buttons;fields=first_name,last_name;providers=vkontakte,facebook;redirect_uri=http%3A%2F%2Fbirdlab.ru%2F;callback=login"><div class="loginbutton"><img src="img/vk.png" data-uloginbutton="vkontakte"/></div><div class="loginbutton"><img src="img/facebook.png" data-uloginbutton="facebook"/></div></div>');
+                    $('#start .inside').html(' Привет! Кнопка реги по email еще не работает,<br> но остальные работают как часы:' +
+                        '<div id="uLogin" data-ulogin="display=buttons;fields=first_name,last_name;providers=vkontakte,facebook;redirect_uri=http%3A%2F%2Fbirdlab.ru%2F;callback=login">' +
+                        '<div class="loginbutton"><img src="img/vk.png" data-uloginbutton="vkontakte"/></div>' +
+                        '<div class="loginbutton"><img src="img/facebook.png" data-uloginbutton="facebook"/></div>' +
+                        '<div class="loginbutton"><img src="img/mail.png" /></div>' +
+                        '</div>');
                 }
                 viewer.showError = function(data) {
                     $('#start').removeClass('hide');
                     $('#tactris').addClass('hide');
-                    $('#start .inside').html('<h1>Без паники!</h1><p>Трактрис ушел доделываться. Спасибо за терпение ;)</p><small>Если это безобразие происходит дольше часа, <a href="http://birdlab.ru">тут</a> есть все контакты</small>');
+                    $('#start .inside').html('<img src="http://studlab.com/_nw/0/87411651.jpeg" style="max-width: 300px"><p></p><small>Пришло время избавиться от обязательной реги. Наконец-то можно будет играть абсолюьно анонимно, до того момента как не захочется поиграть в совместную игру или сохранить рекорды.<br>Да, для этого придется потерпеть )</small>');
                 }
                 viewer.showGreating = function(data) {
 
@@ -410,10 +438,9 @@ var TACTRIS = (function(_t) {
                         if (obj.counter) {
 
                             setTimeout(function() {
+                                var cur = pole[obj.counter - 1][obj.line];
                                 if (obj.dir === 'x') {
                                     var cur = pole[obj.line][obj.counter - 1];
-                                } else {
-                                    var cur = pole[obj.counter - 1][obj.line];
                                 }
                                 cur.setState('empty');
 
@@ -746,45 +773,55 @@ var TACTRIS = (function(_t) {
                         viewer.fillPole(data);
                     });
                 }
-                viewer.showLeaderboard = function(type) {
-                    var t = 'hiscore';
+
+
+                viewer.showLeaderboard = function(type, sw) {
+                    var t = 'hioveral';
                     if (type) {
                         t = type;
                     }
-                    _t.client.getLeaderboard(t, function(data) {
-                        if ($('#leaderboard').hasClass('hide')) {
-                            if (!$('#gameover').hasClass('hide')) {
-                                viewer.clearPole();
+                    $('#leaderboard .button-switch').removeClass('active');
+                    $('#leaderboard .'+t).addClass('active');
+
+
+
+                    var getScores = function(data) {
+
+                        var list = '<table><tbody>';
+                        for (var i in data) {
+                            var index = Number(i) + 1;
+                            data[i].name
+                            data[i].id = data[i]._id.toString();
+                            var me = '';
+                            if (data[i].id === user.id) {
+                                me = ' class="me"'
                             }
-                            $('.infopanel').addClass('hide');
-                            $('.uibutton.leaderboard').addClass('active');
-                            $('#leaderboard').removeClass('hide').html('');
+                            list += '<tr' + me + '><td class="place">' + index + '</td><td class="username " userid="' + data[i].id + '">' + data[i].name + '</td><td class="hiscore">' + data[i].hiscore + '</td></tr>';
+                        }
+                        list += '</tbody></table>';
+
+                        $('#leaderboard .scroller').html(list).find('.username').click(function() {
+                            var userid = $(this).attr('userid');
+                            _t.client.getUser({id: userid}, viewer.showUser);
+                        });
+                    }
 
 
-                            var list = '<div><table><tbody>';
-                            for (var i in data) {
-                                var index = Number(i) + 1;
-                                data[i].name
-                                data[i].id = data[i]._id.toString();
-                                var me = '';
-                                if (data[i].id === user.id) {
-                                    me = 'me'
-                                }
-                                list += '<tr class="' + me + '"><td class="place">' + index + '</td><td class="username " userid="' + data[i].id + '">' + data[i].name + '</td><td class="hiscore">' + data[i].hiscore + '</td></tr>';
-                            }
-                            list += '</tbody></table></div>';
+                    if ($('#leaderboard').hasClass('hide')) {
+                        $('.infopanel').addClass('hide');
+                        $('.uibutton.leaderboard').addClass('active');
+                        $('#leaderboard').removeClass('hide');
+                        if (!$('#gameover').hasClass('hide')) {
+                            viewer.clearPole();
+                        }
+                        _t.client.getLeaderboard(t, getScores);
 
-                            $('#leaderboard').html(list).find('.username').click(function() {
-                                var userid = $(this).attr('userid');
-                                _t.client.getUser({id: userid}, viewer.showUser);
-                            });
-
-
-                        } else {
+                    } else {
+                        if (!sw) {
                             $('#leaderboard').addClass('hide');
                             $('.uibutton.leaderboard').removeClass('active');
                         }
-                    });
+                    }
                 }
 
                 viewer.addAlert = function(message) {
@@ -824,7 +861,7 @@ var TACTRIS = (function(_t) {
                     if (sessionid) {
                         _t.client.resume(sessionid);
                     } else {
-                        _t.viewer.showLogin(data);
+                        _t.client.beGuest();
                     }
 
                 });
@@ -939,14 +976,17 @@ var TACTRIS = (function(_t) {
                                 if (data.id) {
                                     var or = window.location.origin;
                                     var path = or + '/game#' + data.id
-                                    _t.viewer.showDialog({message: 'Эта игра доступна по ссылке:<br><a href="' + path + '">' + path + '</br>', buttons: [
-                                        {
-                                            label: 'Ок',
-                                            action: function() {
-                                                $('#dialog').addClass('hide');
+                                    _t.viewer.showDialog({
+                                        message: 'Эта игра доступна по ссылке:<br><a href="' + path + '">' + path + '</br>',
+                                        buttons: [
+                                            {
+                                                label: 'Ок',
+                                                action: function() {
+                                                    $('#dialog').addClass('hide');
+                                                }
                                             }
-                                        }
-                                    ]});
+                                        ]
+                                    });
                                 }
 
                             }
@@ -960,26 +1000,28 @@ var TACTRIS = (function(_t) {
                             if (data.error.reason == 'fullgame') {
                                 alertstring = 'В этой игре больше нет места';
                             }
-                            _t.viewer.showDialog({message: alertstring, buttons: [
-                                {
-                                    label: 'Найти открытую игру',
-                                    action: function() {
-                                        _t.client.getGame('open');
+                            _t.viewer.showDialog({
+                                message: alertstring, buttons: [
+                                    {
+                                        label: 'Найти открытую игру',
+                                        action: function() {
+                                            _t.client.getGame('open');
+                                        }
+                                    },
+                                    {
+                                        label: 'Создать открытую игру',
+                                        action: function() {
+                                            _t.client.getGame('newopen');
+                                        }
+                                    },
+                                    {
+                                        label: 'Создать игру по ссылке',
+                                        action: function() {
+                                            _t.client.getGame('newdirect');
+                                        }
                                     }
-                                },
-                                {
-                                    label: 'Создать открытую игру',
-                                    action: function() {
-                                        _t.client.getGame('newopen');
-                                    }
-                                },
-                                {
-                                    label: 'Создать игру по ссылке',
-                                    action: function() {
-                                        _t.client.getGame('newdirect');
-                                    }
-                                }
-                            ]});
+                                ]
+                            });
                         }
                     });
                 }
@@ -1005,15 +1047,15 @@ var TACTRIS = (function(_t) {
                         // _t.viewer.showProgress('Привет, ' + data.user.name + '! <br> Сейчас мы найдем подходящую игру...');
                         // getgame();
                     }
-                }
+                };
                 client.getGame = function(mode, id) {//TODO rewrite to single function
                     getgame(mode, id);
-                }
+                };
                 client.syncState = function(callback) {
                     socket.emit('syncstate', function(data) {
                         callback(data);
                     })
-                }
+                };
                 client.getUser = function(d, callback) {
                     socket.emit('getuser', d, function(data) {
                         if (callback) {
@@ -1021,10 +1063,10 @@ var TACTRIS = (function(_t) {
                         }
                     })
 
-                }
+                };
                 client.sendMessage = function(str) {
                     socket.emit('chatmessage', {m: str});
-                }
+                };
                 client.getSystemInfo = function(callback) {
                     socket.emit('systeminfo', function(data) {
                         if (callback) {
@@ -1067,6 +1109,10 @@ var TACTRIS = (function(_t) {
                     _t.viewer.showProgress('Авторизуем...');
                     socket.emit('login', {t: token}, processlogin);
                 };
+                client.beGuest = function() {
+                    _t.viewer.showProgress('Авторизуем...');
+                    socket.emit('login', {g: true}, processlogin);
+                };
                 client.shutdown = function(reason) {
                     if (reason) {
                         socket.emit('shutdown', {'reason': reason});
@@ -1093,9 +1139,8 @@ var TACTRIS = (function(_t) {
         return _t;
 
     }
-        (TACTRIS || {})
-        )
-    ;
+    (TACTRIS || {})
+);
 
 function login(token) {
     TACTRIS.client.login(token);
