@@ -115,7 +115,7 @@ exports.getUser = function(data, callback) {
             req = {uid: data._id}
         }
         if (data.dbid) {
-            req = {_id:new objectId(data.dbid)}
+            req = {_id: new objectId(data.dbid)}
         }
         collection.findOne(req, function(err, docs) {
             console.log(err, docs);
@@ -154,24 +154,34 @@ exports.getLeaderboard = function(data, callback) {
             });
 
         } else {
-            collection=db.collection('score');
-            if (data.type=='hidaily'){
-                collection.find({score: {$gte: 10}}, {
-                    fields: {
-                        userid: 1,
-                        name: 1,
-                        score: 1
-                    }
-                }).sort({score: -1}).limit(100).toArray(function(err, docs) {
-                    if (docs) {
-                        callback(docs);
-                    } else {
-                        callback({error: {message: 'notfound', code: 404}});
-                    }
-
-                });
+            collection = db.collection('score');
+            if (data.type == 'hidaily') {
+                var dateshift = new Date(new Date() - 86400000);
             }
+            if (data.type == 'hiweek') {
+                var dateshift = new Date(new Date() - 604800000);
+            }
+            if (data.type == 'himounth') {
+                var dateshift = new Date(new Date() - 2592000000);
+            }
+
+
+            collection.find({date: {$gt: dateshift}}, {
+                fields: {
+                    userid: 1,
+                    name: 1,
+                    score: 1
+                }
+            }).sort({score: -1}).limit(100).toArray(function(err, docs) {
+                if (docs) {
+                    callback(docs);
+                } else {
+                    callback({error: {message: 'notfound', code: 404}});
+                }
+
+            });
         }
+
 
     } else {
         callback({error: 'db fail'});
@@ -218,8 +228,8 @@ exports.saveUser = function(data, callback) {
 exports.addScore = function(data, callback) {
     if (db) {
         var collection = db.collection('score');
-        if (data){
-            collection.insert(data, function(err, docs){
+        if (data) {
+            collection.insert(data, function(err, docs) {
                 if (docs[0]) {
                     callback({'ok': true});
                 } else {

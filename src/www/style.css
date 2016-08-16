@@ -612,6 +612,7 @@ a {
     background: #000;
     text-align: center;
     align-content: center;
+    color:gr
 }
 
 #leaderboard .button-switch {
@@ -634,4 +635,11 @@ a {
     padding-left: 20px !important;
     padding-right: 20px !important;
     color: #000;
+}
+
+.guest_login .loginbutton {
+    padding: 10px;
+}
+.guest_login .bigger {
+    font-size: 1.7pc;
 }
