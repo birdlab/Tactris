@@ -152,10 +152,10 @@ var TACTRIS = (function(_t) {
                 if (e.buttons > 0) {
                     var h = e.offsetX / colorline.offsetWidth;
                     user.color = h;
-                    if (user.spray) {
-                        user.spray.unstyle();
-                    }
-                    user.spray = spray(stylegen(user.id, user.color));
+                    //if (user.spray) {
+                    //    user.spray.unstyle();
+                    //}
+                    //user.spray = spray(stylegen(user.id, user.color));
                 }
             }
             colorline.onmouseup = function(e) {
@@ -360,7 +360,7 @@ var TACTRIS = (function(_t) {
                 viewer.showError = function(data) {
                     $('#start').removeClass('hide');
                     $('#tactris').addClass('hide');
-                    $('#start .inside').html('<img src="http://studlab.com/_nw/0/87411651.jpeg" style="max-width: 300px"><p></p><small>Пришло время избавиться от обязательной реги. Наконец-то можно будет играть абсолюьно анонимно, до того момента как не захочется поиграть в совместную игру или сохранить рекорды.<br>Да, для этого придется потерпеть )</small>');
+                    $('#start .inside').html('<img src="http://studlab.com/_nw/0/87411651.jpeg" style="max-width: 300px"><p></p><small>У нас наблюдаются некоторые проблемы с базой данных. Скоро все починится<br>Да, для этого придется потерпеть )</small>');
                 }
                 viewer.showGreating = function(data) {
 
@@ -403,11 +403,11 @@ var TACTRIS = (function(_t) {
                         for (var u in users) {
                             if (users[u].id == data.userid) {
                                 users[u].color = data.color;
-                                if (users[u].spray) {
-                                    users[u].spray.unstyle();
-                                }
-                                users[u].spray = spray(stylegen(users[u].id, users[u].color));
-                                users[u].spray.style();
+                                //if (users[u].spray) {
+                                //    users[u].spray.unstyle();
+                                //}
+                                //users[u].spray = spray(stylegen(users[u].id, users[u].color));
+                                //users[u].spray.style();
                                 break;
                             }
                         }
@@ -586,7 +586,7 @@ var TACTRIS = (function(_t) {
                     data.id = data.id.toString();
                     $('#profile .userpic').removeClassWild('uid*').addClass('uid' + data.id);
                     if (data.color) {
-                        spray(stylegen(data.id, data.color));
+                        //(stylegen(data.id, data.color));
                     }
                     if (data.id === user.id && data.id != '0') {
                         $('#colorline').removeClass('hide');
@@ -644,7 +644,7 @@ var TACTRIS = (function(_t) {
                 viewer.addUser = function(user) {
                     users.push(user);
                     if (user.color) {
-                        user.spray = spray(stylegen(user.id, user.color));
+                        //user.spray = spray(stylegen(user.id, user.color));
                     }
 
                     var usr = '<div class="userpanel uid' + user.id + '"><table class="topinfo"><tr>';
@@ -1132,14 +1132,17 @@ var TACTRIS = (function(_t) {
                 }
                 client.resume = function(session) {
                     _t.viewer.showProgress('Авторизуем...');
+                    console.log('try to be resume');
                     socket.emit('login', {s: session}, processlogin);
                 };
                 client.login = function(token) {
                     _t.viewer.showProgress('Авторизуем...');
+                    console.log('try to login');
                     socket.emit('login', {t: token}, processlogin);
                 };
                 client.beGuest = function() {
                     _t.viewer.showProgress('Авторизуем...');
+                    console.log('try to be guest');
                     socket.emit('login', {g: true}, processlogin);
                 };
                 client.shutdown = function(reason) {

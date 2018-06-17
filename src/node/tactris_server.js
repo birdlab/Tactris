@@ -1,7 +1,8 @@
 var io = require('socket.io')(40040);
 var http = require('http');
+var crypto = require('crypto');
 var options = require('./options.json');
-var db = require('./db.js');
+var db = require('./dbsql.js');
 var User = require('./user.js').User;
 //var PGame = require('./personalgame.js').Game;
 var SharedGame = require('./sharedgame.js').Game;
@@ -131,6 +132,8 @@ var bindcommands = function(socket) {
         }
     });
     socket.on('getgame', function(data, callback) {
+        console.log('user request game:');
+        console.log(data);
             var createshared = function() {
                 var game = new SharedGame({dim: 10});
                 opengames.push(game);
@@ -226,27 +229,37 @@ var bindcommands = function(socket) {
 
 
             if (data.gt == 'open') {
+
+                console.log('gametype is open. find existed');
+
+
                 var finded = false;
                 removeSocket(socket, function() {
+                    console.log('we have now '+ opengames.length +' open games');
                     if (opengames.length) {
                         var freeslots = [];
                         for (var g in opengames) {
-                            if (opengames[g].sockets.length < 4) {
+                            opg=opengames[g];
+                            if (opg.sockets.length < 4) {
+                                console.log('we have place in game');
                                 var ingame = false;
-                                for (var s in opengames[g].sockets) {
-                                    if (opengames[g].sockets[s].user.dbdata._id.toString() === socket.user.dbdata._id.toString()) {
+                                for (var s in opg.sockets) {
+                                    console.log(socket.user.dbdata);
+                                    if (opg.sockets[s].user.dbdata._id.toString() === socket.user.dbdata._id.toString()) {
                                         ingame = true;
                                     }
                                 }
                                 if (!ingame) {
-                                    freeslots.push(opengames[g]);
+                                    console.log('this user not in this game');
+                                    freeslots.push(opg);
                                 }
                             }
                         }
                         if (freeslots.length) {
+                            console.log('we have free slots');
                             freeslots = sortByActivity(freeslots);
-                            console.log(freeslots.length);
-                            console.log(socket.gameskip);
+                            console.log('freeslots.length '+ freeslots.length);
+                            console.log('socket.gameskip  '+socket.gameskip);
                             if (socket.gameskip < freeslots.length) {
 
                                 freeslots[socket.gameskip].addPlayer(socket, callback);
@@ -254,6 +267,7 @@ var bindcommands = function(socket) {
                                 socket.gameskip++;
 
                             } else {
+                                console.log('socket.gameskip = 0;');
                                 socket.gameskip = 0;
                             }
                         }
@@ -491,7 +505,7 @@ io.on('connection', function(socket) {
             socket.user = new User({
                 name: 'Guest',
                 network: 'guest',
-                _id:0
+                _id:getTimeHash()
             });
             console.log('new Guest connected');
             users.push(socket.user);
@@ -506,3 +520,10 @@ io.on('connection', function(socket) {
         removeSocket(socket);
     });
 });
+
+function getTimeHash(){
+    var hash = new Date().getTime().toString();
+    var shasum = crypto.createHash('sha1');
+    shasum.update(hash, 'utf8');
+    return shasum.digest('hex');
+}

@@ -1,4 +1,4 @@
-var db = require('./db.js');
+var db = require('./dbsql.js');
 
 function Game(data, callback) {
     if (data.dim) {
@@ -22,14 +22,12 @@ function Game(data, callback) {
 
 Game.prototype.bindplayer = function(player) {
     player.on('move', function(data, callback) {
-        console.log(data);
         callback('ok');
     })
 }
 Game.prototype.save = function() {
-    console.log('saving', this.dbdata.name);
     db.saveGame(this.dbdata, function(data) {
-        console.log('user saved - ', data);
+        console.log('user saved');
     });
     return this;
 }

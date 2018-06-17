@@ -1,4 +1,4 @@
-var db = require('./db.js');
+var db = require('./dbsql.js');
 var Chat = require('./chat.js').Chat;
 
 var refs = refs = [

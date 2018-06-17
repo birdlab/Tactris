@@ -4,8 +4,10 @@ sftp-config.json
 
 src/node/options.json
 
-src/node/dbsql.js
+src/node/db.local.js
 
 src/node/migrate.js
 
 deployment-config.json
+
+.idea*

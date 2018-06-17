@@ -1,4 +1,4 @@
-var db = require('./db.js');
+var db = require('./dbsql.js');
 var crypto = require('crypto');
 
 function User(data) {
@@ -22,7 +22,7 @@ User.prototype.save = function() {
     }
     var u=this;
     db.saveUser(this.dbdata, function(data) {
-        console.log('user '+u.dbdata.name+' saved - ', data);
+        console.log('user '+u.dbdata.name+' saved');
     });
     return this;
 }
