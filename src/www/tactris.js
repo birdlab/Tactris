@@ -657,12 +657,12 @@ $(document).ready(function() {
                 if (checkEnd()) {
                     storage.set('tactris.saved', false);
                     var d=(Date.parse(new Date()) - totaltime)/1000;
-                    ga('send','score',score.toString(), d.toString());
+                    //ga('send','score',score.toString(), d.toString());
                     showEnd();
                 } else {
                     saveGame();
                     var d=delta();
-                    ga('send','placed figure',curents[checkindex].refindex.toString(), d.toString());
+                    //ga('send','placed figure',curents[checkindex].refindex.toString(), d.toString());
                 }
             }
 

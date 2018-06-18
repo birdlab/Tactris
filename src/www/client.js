@@ -1146,12 +1146,10 @@ var TACTRIS = (function(_t) {
                         state: block.state
                         //TODO state optimize
                     }
-                    ga('send', 'event', 'pick', user.name);
                     socket.emit('pick', blk, function(data) {
                     });
                 }
                 client.sendInsert = function() {
-                    ga('send', 'event', 'install', user.name);
                     socket.emit('insert', function(data) {
                     });
                 }
