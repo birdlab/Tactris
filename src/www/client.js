@@ -11,6 +11,34 @@
     };
 })(jQuery);
 
+var stylenodes=[];
+
+var spray=function(stylestring, id){
+    var finded=false;
+    for (var st in stylenodes){
+        if (stylenodes[st]['id']==id){
+            finded=true;
+            var node= stylenodes[st]['node'];
+            node.innerHTML=stylestring;
+            break;
+        }
+    }
+    if (finded==false){
+        var node = document.createElement('style');
+        node.innerHTML=stylestring;
+        document.body.appendChild(node);
+        data={
+            'node':node,
+            'id':id
+        };
+        stylenodes.push(data);
+
+    }
+    return node
+};
+
+
+
 var debug = false;
 var TACTRIS = (function(_t) {
 
@@ -138,10 +166,10 @@ var TACTRIS = (function(_t) {
                 var rgb = HSVtoRGB(color, 0.33, 1);
 
 
-                var style = '{".tactris-block.active.uid' + id + ', .uid' + id + ' .active": ';
-                style += '{ "box-shadow": "0px 0px 25px 0px rgba(' + rgb.r + ', ' + rgb.g + ', ' + rgb.b + ', 0.7)", "background-color": "' + rgbhex + '"},';
-                style += ' ".uid' + id + ' span": ';
-                style += '{ "color": "' + rgbhex + '"}}';
+                var style = '.uid' + id + ' .active, .uid' + id + '.active ';
+                style += '{ box-shadow: 0px 0px 25px 0px rgba(' + rgb.r + ', ' + rgb.g + ', ' + rgb.b + ', 0.7); background-color: ' + rgbhex + ';}';
+                style += ' .uid' + id + ' span ';
+                style += '{ color : ' + rgbhex + ';}';
 
                 return style
 
@@ -155,7 +183,7 @@ var TACTRIS = (function(_t) {
                     //if (user.spray) {
                     //    user.spray.unstyle();
                     //}
-                    //user.spray = spray(stylegen(user.id, user.color));
+                    user.spray = spray(stylegen(user.id, user.color),user.id);
                 }
             }
             colorline.onmouseup = function(e) {
@@ -406,7 +434,7 @@ var TACTRIS = (function(_t) {
                                 //if (users[u].spray) {
                                 //    users[u].spray.unstyle();
                                 //}
-                                //users[u].spray = spray(stylegen(users[u].id, users[u].color));
+                                users[u].spray = spray(stylegen(users[u].id, users[u].color),users[u].id);
                                 //users[u].spray.style();
                                 break;
                             }
@@ -644,7 +672,7 @@ var TACTRIS = (function(_t) {
                 viewer.addUser = function(user) {
                     users.push(user);
                     if (user.color) {
-                        //user.spray = spray(stylegen(user.id, user.color));
+                        user.spray = spray(stylegen(user.id, user.color), user.id);
                     }
 
                     var usr = '<div class="userpanel uid' + user.id + '"><table class="topinfo"><tr>';
