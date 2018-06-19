@@ -8,7 +8,6 @@ var User = require('./user.js').User;
 
 
 
-
 exports.regUser = function(data, callback) {
     if (connection) {
 
@@ -18,9 +17,8 @@ exports.regUser = function(data, callback) {
                     if (result[0]) {
                         var user = new User(result[0]);
                         callback({'user': user});
-
                     } else {
-                        callback({error: 'aouth fail'});
+                        callback({error: 'no such user'});
                     }
                 } else {
                     callback({error: 'db fail'});
@@ -63,4 +61,18 @@ exports.getHiScorePlace = function(data, callback){
         callback({error: 'db fail'});
     }
 }
+
+exports.getSocialUser = function(data, callback) {
+    if (connection) {
+
+        if (data) {
+            console.log(data)
+            callback({ok: true});
+
+        }
+
+    } else {
+        callback({error: 'db fail'});
+    }
+};
 

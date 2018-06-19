@@ -491,7 +491,7 @@ Game.prototype.checkGameOver = function() {
             if (so.user.dbdata.hiscore < so.score) {
                 so.user.dbdata.hiscore = so.score;
             }
-            if (so.user.dbdata.network != 'guest') {
+            if (!so.user.guest) {
                 var dbgame = {
                     score: so.score,
                     name: so.user.dbdata.name,
@@ -507,7 +507,8 @@ Game.prototype.checkGameOver = function() {
                 id: so.user.dbdata._id.toString(),
                 name: so.user.dbdata.name,
                 score: so.score,
-                hiscore: so.user.dbdata.hiscore
+                hiscore: so.user.dbdata.hiscore,
+                guest:this.personal && so.user.guest
             });
             so.score = 0;
             so.figure = [];

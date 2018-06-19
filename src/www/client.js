@@ -607,6 +607,7 @@ var TACTRIS = (function(_t) {
                 }
 
                 viewer.showUser = function(data) {
+                    console.log(data);
 
                     $('.infopanel').addClass('hide');
                     $('#profile').removeClass('hide');
@@ -637,7 +638,7 @@ var TACTRIS = (function(_t) {
                     $('#profile').find('.overalscore span').html(data.overalscore);
                     $('#profile').find('.games span').html(data.totalgames);
                     $('#profile').find('.hiscoreplace span').html(data.hiscoreplace);
-                    if (data.id === user.id && data.id != '0') {
+                    if (data.id === user.id && data.guest!=true) {
                         $('#profile').find('.self_options').removeClass('hide');
                         $('#profile .showsocial').prop('checked', data.profile);
                         $('#profile .showsocial').change(function() {
@@ -647,7 +648,7 @@ var TACTRIS = (function(_t) {
 
                     } else {
                         $('#profile .self_options').addClass('hide');
-                        if (data.id === '0') {
+                        if (data.guest) {
                             $('.guest_login').html('<span class="bigger">Самое время авторизоваться </span><br><small>(ни каких постов на стене и прочего непотребства)</small>' +
                                 '<div id="uLogin" data-ulogin="display=buttons;fields=first_name,last_name;providers=vkontakte,facebook;redirect_uri=http%3A%2F%2Fbirdlab.ru%2F;callback=login">' +
                                 '<div class="loginbutton"><img src="img/vk.png" data-uloginbutton="vkontakte"/></div>' +
@@ -725,7 +726,7 @@ var TACTRIS = (function(_t) {
                     }
                     fixmenu();
                     // }
-                }
+                };
                 viewer.setUserStatus = function(data) {
                     for (var u in users) {
                         if (users[u].id === data.id) {
@@ -778,12 +779,21 @@ var TACTRIS = (function(_t) {
                     }, 10000);
                 }
                 viewer.showGameOver = function(data) {
+                    console.log(data);
                     $('#gameover').removeClass('hide');
-                    $('#gameover').html('<div><h2>О, как внезапно кончилась игра</h2></div><div id="summary"></div>');
+                    $('#gameover').html('<div><h3>:/</h3></div><div id="summary"></div>');
                     for (var u in data.users) {
                         $('<div>' + data.users[u].name + '</div>').appendTo($('#summary'));
                         $('<div>Score: ' + data.users[u].score + '</div>').appendTo($('#summary'));
                         $('<div>Hiscore: ' + data.users[u].hiscore + '</div><br>').appendTo($('#summary'));
+                        if (data.users[u].guest){
+                            $('<div class="guest_login"><span class="bigger">Самое время авторизоваться </span><br><small>(ни каких постов на стене и прочего непотребства)</small>' +
+                                '<div id="uLogin" data-ulogin="display=buttons;fields=first_name,last_name;providers=vkontakte,facebook;redirect_uri=http%3A%2F%2Fbirdlab.ru%2F;callback=login">' +
+                                '<div class="loginbutton"><img src="img/vk.png" data-uloginbutton="vkontakte"/></div>' +
+                                '<div class="loginbutton"><img src="img/facebook.png" data-uloginbutton="facebook"/></div>' +
+                                '<div class="loginbutton"><img src="img/mail.png" /></div>' +
+                                '</div></div>').appendTo($('#summary'));
+                        }
                     }
                     $('<div id="replay">Еще разок?</div>').appendTo($('#gameover'));
                     $('#replay').click(function() {
@@ -816,7 +826,6 @@ var TACTRIS = (function(_t) {
                         viewer.fillPole(data);
                     });
                 }
-
 
                 viewer.showLeaderboard = function(type, sw) {
                     var t = 'hidaily';

@@ -9,7 +9,9 @@ function User(data) {
     this.dbdata.showsocial = data.showsocial || 0;
     this.dbdata.name = data.name.replace(/<(?:.|\n)*?>/gm, '');
     this.dbdata.color = data.color || Math.random();
-    console.log(this.dbdata);
+    if (data.network=='guest'){
+        this.guest=true;
+    }
 }
 
 
@@ -76,7 +78,9 @@ User.prototype.fullData = function(callback, ss) {
         exp: this.dbdata.exp,
         hiscore: this.dbdata.hiscore,
         totalgames: this.dbdata.totalgames,
-        overalscore: Math.round(this.dbdata.exp / this.dbdata.totalgames)
+        overalscore: Math.round(this.dbdata.exp / this.dbdata.totalgames),
+        guest:this.guest || false
+
     }
     if (this.dbdata.showsocial || ss) {
         obj.profile = this.dbdata.profile;
