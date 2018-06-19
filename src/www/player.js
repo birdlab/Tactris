@@ -166,7 +166,13 @@ $(document).ready(function() {
             name: 'prison',
             hi: 'http://trigger.fm/stream/prison',
             low: 'http://trigger.fm/stream/prisonmp3'
+        },
+        {
+            name: 'coffeshop',
+            hi: 'http://trigger.fm/stream/coffeeshop',
+            low: 'http://trigger.fm/stream/coffeeshopmp3'
         }
+
     ];
     client.channel.hi = 'http://trigger.fm/stream/main';
     client.channel.low = 'http://trigger.fm/stream/mainmp3';
@@ -174,7 +180,7 @@ $(document).ready(function() {
     $('#trigger .channel').html(client.channels[channelindex].name);
     $('#trigger .channel').click(function() {
         channelindex++;
-        if (channelindex > 2) {
+        if (channelindex > client.channels.length-1) {
             channelindex = 0;
         }
         $('#trigger .channel').html(client.channels[channelindex].name);
@@ -189,11 +195,11 @@ $(document).ready(function() {
     console.log(player);
     $('#trigger .streambutton').click(function() {
         if (player.playing) {
-            $('#trigger .streambutton img')[0].src = 'img/triggeron.png'
+            $('#trigger .streambutton img')[0].src = 'img/triggeroff.svg';
             $('#trigger').css({opacity: 0.4});
             player.stop();
         } else {
-            $('#trigger .streambutton img')[0].src = 'img/on.gif';
+            $('#trigger .streambutton img')[0].src = 'img/triggeron.svg';
             $('#trigger').css({opacity: 1});
             player.play();
         }
