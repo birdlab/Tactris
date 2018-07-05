@@ -87,6 +87,7 @@ small {
     position: absolute;
     text-align: center;
     width: 100%;
+    padding: 20pt;
 }
 
 #newusername {
@@ -294,8 +295,17 @@ small {
     background-color: rgba(0, 0, 0, 0.5);
 }
 
-#gameover {
+#gameover .hiscore {
+     font-size: 10pt;
 
+ }
+
+#gameover .score {
+    font-size: 20pt;
+}
+#gameover .name {
+    margin-top: -20pt;
+    font-size: 22pt;
 }
 
 #profile {

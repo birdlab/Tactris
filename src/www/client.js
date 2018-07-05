@@ -783,9 +783,9 @@ var TACTRIS = (function(_t) {
                     $('#gameover').removeClass('hide');
                     $('#gameover').html('<div><h3>:/</h3></div><div id="summary"></div>');
                     for (var u in data.users) {
-                        $('<div>' + data.users[u].name + '</div>').appendTo($('#summary'));
-                        $('<div>Score: ' + data.users[u].score + '</div>').appendTo($('#summary'));
-                        $('<div>Hiscore: ' + data.users[u].hiscore + '</div><br>').appendTo($('#summary'));
+                        $('<div class="name">' + data.users[u].name + '</div>').appendTo($('#summary'));
+                        $('<div class="score">' + data.users[u].score + '</div>').appendTo($('#summary'));
+                        $('<div class="hiscore">Hiscore: ' + data.users[u].hiscore + '</div><br>').appendTo($('#summary'));
                         if (data.users[u].guest){
                             $('<div class="guest_login"><span class="bigger">Самое время авторизоваться </span><br><small>(ни каких постов на стене и прочего непотребства)</small>' +
                                 '<div id="uLogin" data-ulogin="display=buttons;fields=first_name,last_name;providers=vkontakte,facebook;redirect_uri=http%3A%2F%2Fbirdlab.ru%2F;callback=login">' +
@@ -920,6 +920,8 @@ var TACTRIS = (function(_t) {
 
                 socket.on('connect', function(data) {
                     var sessionid = storage.get('sessionid');
+                    console.log('session id in storage ');
+                    console.log(sessionid);
                     if (sessionid) {
                         _t.client.resume(sessionid);
                     } else {
