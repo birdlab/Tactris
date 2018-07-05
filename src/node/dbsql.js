@@ -22,6 +22,20 @@ exports.saveUser = function(data, callback) {
     }
 };
 
+exports.addScore = function(data, callback){
+    if (connection) {
+
+        if (data) {
+            console.log(data);
+            callback({ok: true});
+
+        }
+
+    } else {
+        callback({error: 'db fail'});
+    }
+}
+
 exports.getHiScorePlace = function(data, callback){
     if (connection) {
 

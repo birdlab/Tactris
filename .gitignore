@@ -11,3 +11,4 @@ src/node/migrate.js
 deployment-config.json
 
 .idea*
+*.db
