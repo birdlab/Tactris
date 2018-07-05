@@ -398,13 +398,13 @@ Game.prototype.getPoleState = function(callback) {
 
 }
 
-Game.prototype.getSlot = function(_id) {
+Game.prototype.getSlot = function(id) {
     var find = false;
     for (var s in this.slots) {
         console.log(s);
         if (this.slots[s].free === true) {
             if (this.slots[s].lastid) {
-                if (this.slots[s].lastid === _id.toString()) {
+                if (this.slots[s].lastid === id) {
                     find = this.slots[s];
                     break;
                 } else {
@@ -457,7 +457,7 @@ Game.prototype.insertFigure = function(socket, callback) {
                 },
                 exp: socket.user.addXp(4),
                 score: socket.score,
-                userid: socket.user.dbdata._id.toString()
+                userid: socket.user.dbdata.id
 
             }
             this.lastmoved = socket;
@@ -495,7 +495,7 @@ Game.prototype.checkGameOver = function() {
                 var dbgame = {
                     score: so.score,
                     name: so.user.dbdata.name,
-                    userid: so.user.dbdata._id,
+                    userid: so.user.dbdata.id,
                     date: new Date()
                 }
                 db.addScore(dbgame, function(data) {
@@ -504,7 +504,7 @@ Game.prototype.checkGameOver = function() {
             }
             so.user.dbdata.totalgames++;
             users.push({
-                id: so.user.dbdata._id.toString(),
+                id: so.user.dbdata.id,
                 name: so.user.dbdata.name,
                 score: so.score,
                 hiscore: so.user.dbdata.hiscore,
@@ -606,7 +606,7 @@ Game.prototype.checkLines = function() {
         var nnd = {
             exp: socket.user.addXp(addxp),
             score: socket.score,
-            userid: socket.user.dbdata._id.toString()
+            userid: socket.user.dbdata.id
 
         }
 
@@ -705,7 +705,7 @@ Game.prototype.pickPixel = function(pixel, socket) {
     if (socket.currentGame && socket.currentGame == this) {
         if (socket.blured) {
             socket.blured = false;
-            this.emit('userblur', {id: socket.user.dbdata._id.toString(), blur: socket.blured});
+            this.emit('userblur', {id: socket.user.dbdata.id, blur: socket.blured});
         }
         if (this.pole[pixel.y][pixel.x] > 0) {
             return;
@@ -716,7 +716,7 @@ Game.prototype.pickPixel = function(pixel, socket) {
             }
         }
         socket.figure.push(pixel);
-        pixel.id = socket.user.dbdata._id.toString();
+        pixel.id = socket.user.dbdata.id;
         this.broadcast(pixel);
         this.checkFigure(socket);
     }
@@ -759,7 +759,7 @@ Game.prototype.broadcast = function(change) {
 
 Game.prototype.addPlayer = function(socket, callback) {
     console.log(socket.user.dbdata.name + ' enter game');
-    var slot = this.getSlot(socket.user.dbdata._id);
+    var slot = this.getSlot(socket.user.dbdata.id);
     slot.socket = socket;
     slot.free = false;
     this.sockets.push(socket);
@@ -773,7 +773,7 @@ Game.prototype.addPlayer = function(socket, callback) {
     initData.users = [];
     for (var u in this.sockets) {
         var userdata = {
-            id: this.sockets[u].user.dbdata._id.toString(),
+            id: this.sockets[u].user.dbdata.id,
             name: this.sockets[u].user.dbdata.name,
             score: this.sockets[u].score,
             currents: this.sockets[u].currents,
@@ -784,7 +784,7 @@ Game.prototype.addPlayer = function(socket, callback) {
     }
     initData.pole = this.pole;
     var userdata = {
-        id: socket.user.dbdata._id.toString(),
+        id: socket.user.dbdata.id,
         name: socket.user.dbdata.name,
         score: socket.score,
         currents: socket.currents,
@@ -799,7 +799,7 @@ Game.prototype.updateUser = function(user) {
     for (var u in this.sockets) {
         if (this.sockets[u].user === user) {
             var userdata = {
-                userid: user.dbdata._id.toString(),
+                userid: user.dbdata.id,
                 color: user.dbdata.color
             }
             this.emit('playerupdate', userdata);
@@ -815,7 +815,7 @@ Game.prototype.removePlayer = function(socket, callback) {
             this.slots[ss].currents = socket.currents;
             this.slots[ss].score = socket.score;
             this.slots[ss].free = true;
-            this.slots[ss].lastid = socket.user.dbdata._id.toString();
+            this.slots[ss].lastid = socket.user.dbdata.id;
         }
     }
     for (var f in socket.figure) {
@@ -837,7 +837,7 @@ Game.prototype.removePlayer = function(socket, callback) {
         socket.user.save();
     }
 
-    this.emit('deluser', {id: socket.user.dbdata._id.toString()});
+    this.emit('deluser', {id: socket.user.dbdata.id});
     callback();
 }
 
@@ -848,7 +848,7 @@ Game.prototype.blurUser = function(socket) {
         sf.state = 'empty';
         this.broadcast(sf);
     }
-    this.emit('userblur', {id: socket.user.dbdata._id.toString(), blur: socket.blured});
+    this.emit('userblur', {id: socket.user.dbdata.id, blur: socket.blured});
 }
 Game.prototype.save = function() {
     if (this.personal) {

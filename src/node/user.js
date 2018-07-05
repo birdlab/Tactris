@@ -36,7 +36,7 @@ User.prototype.addXp = function(xpink) {
 }
 
 User.prototype.getSessionId = function(socket) {
-    var hash = socket.handshake.headers['x-real-ip'] + this.dbdata._id.toString() + this.dbdata.uid;
+    var hash = socket.handshake.headers['x-real-ip'] + this.dbdata.id + this.dbdata.uid;
     var shasum = crypto.createHash('sha1');
     shasum.update(hash, 'utf8');
     var answer = shasum.digest('hex');
@@ -46,7 +46,7 @@ User.prototype.getSessionId = function(socket) {
 
 
 User.prototype.setSessionId = function(socket) {
-    var hash = socket.handshake.headers['x-real-ip'] + this.dbdata._id.toString() + this.dbdata.uid;
+    var hash = socket.handshake.headers['x-real-ip'] + this.dbdata.id + this.dbdata.uid;
     var shasum = crypto.createHash('sha1');
     shasum.update(hash, 'utf8');
     this.dbdata.sessionid = shasum.digest('hex');
@@ -56,7 +56,7 @@ User.prototype.setSessionId = function(socket) {
 
 User.prototype.minimize = function() {
     var obj = {
-        id: this.dbdata._id.toString(),
+        id: this.dbdata.id,
         name: this.dbdata.name,
         regdate: this.dbdata.regdate,
         exp: this.dbdata.exp,
@@ -71,7 +71,7 @@ User.prototype.minimize = function() {
 
 User.prototype.fullData = function(callback, ss) {
     var obj = {
-        id: this.dbdata._id.toString(),
+        id: this.dbdata.id,
         name: this.dbdata.name,
         color: this.dbdata.color,
         regdate: this.dbdata.regdate,

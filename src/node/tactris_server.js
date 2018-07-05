@@ -14,7 +14,7 @@ var debug = false;
 var waitforshared = [];
 
 
-var systemdata = function() {
+var systemdata = function () {
 
     var data = {
         'users': [],
@@ -29,8 +29,8 @@ var systemdata = function() {
     return data;
 };
 
-var sortByActivity = function(mass) {
-    return mass.sort(function(a, b) {
+var sortByActivity = function (mass) {
+    return mass.sort(function (a, b) {
         if (a.sockets.length != b.sockets.length) {
             return a.sockets.length - b.sockets.length;
         } else {
@@ -39,9 +39,9 @@ var sortByActivity = function(mass) {
     });
 };
 
-var bindcommands = function(socket) {
-    socket.on('shutdown', function(data) {
-        if (socket.user && socket.user.dbdata._id.toString() === "555e90116e88debb335b91cd") {
+var bindcommands = function (socket) {
+    socket.on('shutdown', function (data) {
+        if (socket.user && socket.user.dbdata.id.toString() === '5') {
             var timeout = 2000;
             if (data.timeout) {
                 timeout = data.timeout;
@@ -50,11 +50,11 @@ var bindcommands = function(socket) {
             if (data.reason) {
                 console.log(data.reason);
             }
-            setTimeout(function() {
+            setTimeout(function () {
                 for (var g in games) {
                     games[g].save();
                 }
-                setTimeout(function() {
+                setTimeout(function () {
                     process.exit();
                 }, 3000);
 
@@ -62,16 +62,16 @@ var bindcommands = function(socket) {
         }
 
     });
-    socket.on('chatmessage', function(data) {
+    socket.on('chatmessage', function (data) {
         if (socket.user && socket.currentGame) {
-            data.uid = socket.user.dbdata._id;
+            data.uid = socket.user.dbdata.id;
             data.name = socket.user.dbdata.name;
             socket.currentGame.chat.postMessage(data);
         }
 
     });
-    socket.on('saveuser', function(data) {
-        if (data.id && socket.user && socket.user.dbdata._id.toString() === data.id) {
+    socket.on('saveuser', function (data) {
+        if (data.id && socket.user && socket.user.dbdata.id === data.id) {
             if (data.color) {
                 socket.user.dbdata.color = data.color;
             }
@@ -86,89 +86,89 @@ var bindcommands = function(socket) {
         }
 
     });
-    socket.on('getleaderboard', function(data, callback) {
+    socket.on('getleaderboard', function (data, callback) {
         if (data.type) {
             db.getLeaderboard({type: data.type}, callback);
         }
     });
-    socket.on('blur', function() {
+    socket.on('blur', function () {
         if (socket.currentGame) {
             socket.currentGame.blurUser(socket);
         }
     });
-    socket.on('getuser', function(data, callback) {
+    socket.on('getuser', function (data, callback) {
         if (data.id) {
             console.log('geting user ' + data.id);
             for (var u in users) {
-                if (data.id === users[u].dbdata._id.toString()) {
+                if (data.id === users[u].dbdata.id) {
                     console.log('finded');
                     users[u].fullData(callback);
                     return;
                 }
             }
-            db.getUser({dbid: data.id}, function(data) {
+            db.getUser({dbid: data.id}, function (data) {
                 if (data.user) {
                     if (callback) {
-                        data.user.fullData(callback, socket.user && socket.user.dbdata._id.toString() === "555e90116e88debb335b91cd");
+                        data.user.fullData(callback, socket.user && socket.user.dbdata.id.toString() === "5");
 
                     }
                 }
             });
         }
     });
-    socket.on('syncstate', function(callback) {
+    socket.on('syncstate', function (callback) {
         if (socket.currentGame) {
             socket.currentGame.getPoleState(callback);
         }
     });
-    socket.on('insert', function(callback) {
+    socket.on('insert', function (callback) {
         if (socket.currentGame) {
             socket.currentGame.insertFigure(socket, callback);
         }
     });
-    socket.on('pick', function(data) {
+    socket.on('pick', function (data) {
         if (socket.currentGame) {
             socket.currentGame.pickPixel(data, socket);
         }
     });
-    socket.on('getgame', function(data, callback) {
-        console.log('user request game:');
-        console.log(data);
-            var createshared = function() {
+    socket.on('getgame', function (data, callback) {
+            console.log('user request game:');
+            console.log(data);
+            var createshared = function () {
                 var game = new SharedGame({dim: 10});
                 opengames.push(game);
                 game.addPlayer(socket, callback);
                 emitglobal({
                     newshared: {
                         id: game.id,
-                        user: {_id: socket.user.dbdata._id.toString(), name: socket.user.dbdata.name}
+                        user: {id: socket.user.dbdata.id, name: socket.user.dbdata.name}
                     }
                 });
 
             }
-            var createdirect = function() {
+            var createdirect = function () {
                 var game = new SharedGame({dim: 10, direct: true});
                 directgames.push(game);
                 game.addPlayer(socket, callback);
             }
-            var createpersonal = function() {
+            var createpersonal = function () {
                 var game = new SharedGame({dim: 10, personal: true, save: socket.user.dbdata.game});
                 games.push(game);
                 game.addPlayer(socket, callback);
             }
             if (data.gt == 'personal') {
-                removeSocket(socket, function() {
+                removeSocket(socket, function () {
                     createpersonal();
                 });
 
             }
             if (data.gt == 'newopen') {
-                removeSocket(socket, function() {
+                removeSocket(socket, function () {
                     createshared();
                 });
             }
             if (data.gt == 'newdirect') {
-                removeSocket(socket, function() {
+                removeSocket(socket, function () {
                     createdirect();
                 });
             }
@@ -179,7 +179,7 @@ var bindcommands = function(socket) {
                         if (opengames[g].id === data.id) {
                             if (opengames[g].sockets.length < 4) {
                                 for (var s in opengames[g].sockets) {
-                                    if (opengames[g].sockets[s].user.dbdata._id.toString() === socket.user.dbdata._id.toString()) {
+                                    if (opengames[g].sockets[s].user.dbdata.id === socket.user.dbdata.id) {
                                         finded = true;
                                         callback({error: {reason: 'ingame'}});
                                         break;
@@ -200,7 +200,7 @@ var bindcommands = function(socket) {
                             if (directgames[g].id === data.id) {
                                 if (directgames[g].sockets.length < 4) {
                                     for (var s in directgames[g].sockets) {
-                                        if (directgames[g].sockets[s].user.dbdata._id.toString() === socket.user.dbdata._id.toString()) {
+                                        if (directgames[g].sockets[s].user.dbdata.id === socket.user.dbdata.id) {
                                             ingame = true;
                                             callback({error: {reason: 'ingame'}});
                                             break;
@@ -234,18 +234,18 @@ var bindcommands = function(socket) {
 
 
                 var finded = false;
-                removeSocket(socket, function() {
-                    console.log('we have now '+ opengames.length +' open games');
+                removeSocket(socket, function () {
+                    console.log('we have now ' + opengames.length + ' open games');
                     if (opengames.length) {
                         var freeslots = [];
                         for (var g in opengames) {
-                            opg=opengames[g];
+                            opg = opengames[g];
                             if (opg.sockets.length < 4) {
                                 console.log('we have place in game');
                                 var ingame = false;
                                 for (var s in opg.sockets) {
                                     console.log(socket.user.dbdata);
-                                    if (opg.sockets[s].user.dbdata._id.toString() === socket.user.dbdata._id.toString()) {
+                                    if (opg.sockets[s].user.dbdata.id.toString() === socket.user.dbdata.id) {
                                         ingame = true;
                                     }
                                 }
@@ -258,8 +258,8 @@ var bindcommands = function(socket) {
                         if (freeslots.length) {
                             console.log('we have free slots');
                             freeslots = sortByActivity(freeslots);
-                            console.log('freeslots.length '+ freeslots.length);
-                            console.log('socket.gameskip  '+socket.gameskip);
+                            console.log('freeslots.length ' + freeslots.length);
+                            console.log('socket.gameskip  ' + socket.gameskip);
                             if (socket.gameskip < freeslots.length) {
 
                                 freeslots[socket.gameskip].addPlayer(socket, callback);
@@ -283,13 +283,13 @@ var bindcommands = function(socket) {
     );
 }
 
-var emitglobal = function(e) {
+var emitglobal = function (e) {
     io.emit('globalevent', {event: e, systemdata: systemdata()});
 }
 
-var removeSocket = function(socket, callback) {
+var removeSocket = function (socket, callback) {
     if (socket.currentGame) {
-        socket.currentGame.removePlayer(socket, function() {
+        socket.currentGame.removePlayer(socket, function () {
             if (socket.currentGame.sockets.length < 1) {
                 if (socket.currentGame.personal) {
                     for (var g in games) {
@@ -327,8 +327,8 @@ var removeSocket = function(socket, callback) {
 
 }
 
-var removeUser = function(user) {
-    setTimeout(function() {
+var removeUser = function (user) {
+    setTimeout(function () {
         if (user) {
             for (var u in users) {
                 if (user == users[u]) {
@@ -340,23 +340,23 @@ var removeUser = function(user) {
     }, 5000);
 }
 
-io.on('connection', function(socket) {
+io.on('connection', function (socket) {
 
     console.log('socket', socket.id, 'connected');
 
-    socket.on('systeminfo', function(callback) {
+    socket.on('systeminfo', function (callback) {
         callback(systemdata());
     });
 
-    socket.on('login', function(data, callback) {
+    socket.on('login', function (data, callback) {
         socket.gameskip = 0;
         if (data.s) {
-            db.getSessionUser(data.s, function(d) {
+/*            db.getSessionUser(data.s, function (d) {
                 if (d.user) {
                     if (d.user.getSessionId(socket) === data.s) {
                         var finded = false;
                         for (var u in users) {
-                            if (users[u].dbdata._id.toString() === d.user.dbdata._id.toString()) {
+                            if (users[u].dbdata.id === d.user.dbdata.id) {
                                 socket.user = users[u];
                                 console.log('finded');
                                 finded = true;
@@ -377,135 +377,104 @@ io.on('connection', function(socket) {
                 } else {
                     callback({error: 'badsession'});
                 }
-            });
+            });*/
+
+            callback({error: 'badsession'});
         }
         if (data.t) {
-            if (debug) {
-                db.getUser({_id: '1566736261'}, function(data) {
-                    console.log(data);
-                    if (data.user) {
-                        socket.user = data.user;
-                        users.push(socket.user);
-                        bindcommands(socket);
-                        callback({user: socket.user.minimize()});
-                    }
-                });
-            } else {
-                var opt = {
-                    host: 'ulogin.ru',
-                    port: 80,
-                    path: '/token.php?host=http://birdlab.ru&token=' + data.t
-                };
-                http.get(opt, function(res) {
-                    if (res.statusCode == 200) {
-                        var str = '';
-                        res.on('data', function(chunk) {
-                            console.log(chunk);
-                            str += chunk;
-                        });
 
-                        res.on('end', function() {
-                            console.log(str);
-                            if (str.length) {
-                                var parsedData = JSON.parse(str);
-                                if (parsedData.uid) {
-                                    db.getSocialUser(parsedData, function(data) {
-                                        if (data) {
-                                            if (data.newuser) {
-                                                socket.on('signup', function(data, callback) {
-                                                    console.log(data);
-                                                    if (data.n) {
-                                                        parsedData.name = data.n;
-                                                        db.createNewUser(parsedData, function(d) {
-                                                            if (d.user) {
-                                                                socket.user = d.user;
-                                                                users.push(socket.user);
-                                                                socket.user.setSessionId(socket);
-                                                                socket.user.save();
-                                                                bindcommands(socket);
-                                                                var userdata = socket.user.minimize();
-                                                                userdata.sessionid = socket.user.dbdata.sessionid;
-                                                                callback({user: userdata, systemdata: systemdata()});
-                                                            }
+            var opt = {
+                host: 'ulogin.ru',
+                port: 80,
+                path: '/token.php?host=http://birdlab.ru&token=' + data.t
+            };
+            http.get(opt, function (res) {
+                if (res.statusCode == 200) {
+                    var str = '';
+                    res.on('data', function (chunk) {
+                        console.log(chunk);
+                        str += chunk;
+                    });
 
-                                                        });
-                                                    }
-                                                });
-                                                callback({newuser: parsedData.first_name + ' ' + parsedData.last_name});
-                                            }
-                                            if (data.user) {
-                                                var finded = false;
-                                                for (var u in users) {
-                                                    if (users[u].dbdata._id.toString() === data.user.dbdata._id.toString()) {
-                                                        socket.user = users[u];
-                                                        console.log('finded');
-                                                        finded = true;
-                                                        break
-                                                    }
+                    res.on('end', function () {
+                        console.log(str);
+                        if (str.length) {
+                            var parsedData = JSON.parse(str);
+                            if (parsedData.uid) {
+                                db.getSocialUser(parsedData, function (data) {
+                                    if (data) {
+                                        if (data.newuser) {
+                                            socket.on('signup', function (data, callback) {
+                                                console.log(data);
+                                                if (data.n) {
+                                                    parsedData.name = data.n;
+                                                    db.createNewUser(parsedData, function (d) {
+                                                        if (d.user) {
+                                                            socket.user = d.user;
+                                                            users.push(socket.user);
+                                                            socket.user.setSessionId(socket);
+                                                            socket.user.save();
+                                                            bindcommands(socket);
+                                                            var userdata = socket.user.minimize();
+                                                            userdata.sessionid = socket.user.dbdata.sessionid;
+                                                            callback({user: userdata, systemdata: systemdata()});
+                                                        }
+
+                                                    });
                                                 }
-                                                if (!finded) {
-                                                    socket.user = data.user;
-                                                    users.push(socket.user);
-                                                }
-                                                socket.user = data.user;
-                                                socket.user.setSessionId(socket);
-                                                socket.user.save();
-                                                users.push(socket.user);
-                                                bindcommands(socket);
-                                                var userdata = socket.user.minimize();
-                                                userdata.sessionid = socket.user.dbdata.sessionid;
-                                                callback({user: userdata, systemdata: systemdata()});
-                                            }
+                                            });
+                                            callback({newuser: parsedData.first_name + ' ' + parsedData.last_name});
                                         }
-                                    });
+                                        if (data.user) {
+                                            var finded = false;
+                                            for (var u in users) {
+                                                if (users[u].dbdata.id === data.user.dbdata.id) {
+                                                    socket.user = users[u];
+                                                    console.log('finded');
+                                                    finded = true;
+                                                    break
+                                                }
+                                            }
+                                            if (!finded) {
+                                                socket.user = data.user;
+                                                users.push(socket.user);
+                                            }
+                                            socket.user = data.user;
+                                            socket.user.setSessionId(socket);
+                                            socket.user.save();
+                                            users.push(socket.user);
+                                            bindcommands(socket);
+                                            var userdata = socket.user.minimize();
+                                            userdata.sessionid = socket.user.dbdata.sessionid;
+                                            callback({user: userdata, systemdata: systemdata()});
+                                        }
+                                    }
+                                });
 
-                                }
-                            } else {
-                                callback({error: str});
                             }
+                        } else {
+                            callback({error: str});
+                        }
 
 
-                        });
+                    });
 
-                    } else {
-                        console.log(res);
-                        callback({error: res});
-                    }
-                }).on('error', function(e) {
-                    console.log('error - ', e);
-                    callback({error: e.message});
-                });
-            }
-        }
-        if (data.m) {
-            db.getMailUser(data.m, function(data) {
-                if (data.user) {
-                    socket.user = data.user;
-                    users.push(socket.user);
-                    bindcommands(socket);
-                    callback({user: socket.user.minimize()});
                 } else {
-                    callback({error: data});
+                    console.log(res);
+                    callback({error: res});
                 }
+            }).on('error', function (e) {
+                console.log('error - ', e);
+                callback({error: e.message});
             });
+
         }
-        if (data.mreg) {
-            db.regUser(data.m, function(data) {
-                if (data.user) {
-                    socket.user = data.user;
-                    users.push(socket.user);
-                    bindcommands(socket);
-                    callback({user: socket.user.minimize()});
-                } else {
-                    callback({error: data});
-                }
-            });
-        }
+
         if (data.g) {
             socket.user = new User({
                 name: 'Guest',
                 network: 'guest',
-                _id:getTimeHash()
+                id: getTimeHash()
             });
             console.log('new Guest connected');
             users.push(socket.user);
@@ -515,13 +484,13 @@ io.on('connection', function(socket) {
     });
 
 
-    socket.on('disconnect', function() {
+    socket.on('disconnect', function () {
         removeUser(socket.user);
         removeSocket(socket);
     });
 });
 
-function getTimeHash(){
+function getTimeHash() {
     var hash = new Date().getTime().toString();
     var shasum = crypto.createHash('sha1');
     shasum.update(hash, 'utf8');
