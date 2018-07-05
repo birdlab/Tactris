@@ -1099,7 +1099,8 @@ var TACTRIS = (function(_t) {
                         });
                     }
                     if (data.error == 'badsession') {
-                        _t.viewer.showLogin();
+                        //_t.viewer.showLogin();
+                        _t.client.beGuest();
                     }
 
                     if (data.user) {
